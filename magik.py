@@ -51,7 +51,7 @@ def process_timeline():
      #   print (mon)
         url = url+'/MonitorId =:'+str(mon)
     url =url+'.json?sort=StartTime&direction=asc&username='+g.args['username']+'&password='+g.args['password']
-    print(url)
+    print('Getting list of events using: {}'.format(url))
     resp = requests.get(url)
     #print (resp.json())
     events = resp.json()['events']
@@ -112,9 +112,12 @@ ap.add_argument('--not-present', dest='present', action='store_false', help='loo
 ap.add_argument('--no-present', dest='present', action='store_false', help='look for frames where image in --match is NOT present')
 ap.set_defaults(present=True)
 g.args = vars(ap.parse_args())
-
 utils.process_config()
 
+utils.dim_print('-----| Arguments to be used:')
+for k,v in g.args.items():
+    utils.dim_print ('{}={}'.format(k,v))
+print('\n')
 if g.args['from'] or g.args['to']:
     # if its a time range, ignore event/input
     process_timeline()

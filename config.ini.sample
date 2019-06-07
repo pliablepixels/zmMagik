@@ -1,0 +1,10 @@
+# This is an example of how you can mix config values with command line values
+# This file contains arguments you may want to reuse across multiple requests
+# Simply do a -c <this config file> and add any other parameters you want in CLI
+# and they will be merged
+
+username=admin
+password=yourpassword
+portal=https://server/zm
+objectonly=True
+display=True

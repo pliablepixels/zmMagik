@@ -39,7 +39,7 @@ def blend_video(input_file=None, out_file=None, eid = None, mid = None, starttim
     if g.args['skipframes']:
         fps_skip = g.args['skipframes']
     else:
-        fps_skip = int(vid.get(cv2.CAP_PROP_FPS)/2)
+        fps_skip = max(1,int(vid.get(cv2.CAP_PROP_FPS)/2))
 
     total_frames =  int(vid.get(cv2.CAP_PROP_FRAME_COUNT)) 
     if vid_blend:
