@@ -44,9 +44,11 @@ def process_timeline():
     except:
         pass
 
-    url = g.args['portal']+'/api/events/index/AlarmFrames >=:1/StartTime >=:'+g.args['from']+'/EndTime <=:'+g.args['to']
+    url = g.args['portal']+'/api/events/index/StartTime >=:'+g.args['from']+'/EndTime <=:'+g.args['to']
     if g.args['objectonly']:
         url = url+'/Notes REGEXP:detected:'
+    if g.args['alarmonly']:
+        url = url+'/AlarmFrames >=:1'
     for mon in g.mon_list:
      #   print (mon)
         url = url+'/MonitorId =:'+str(mon)
@@ -104,8 +106,13 @@ ap.add_argument("--monitors", help = "comma separated list of monitor IDs to sea
 ap.add_argument("--resize", help = "resize factor (0.5 will halve) for both matching template and video size", type=float)
 ap.add_argument("--dumpjson", action='store_true' ,help = "write analysis to JSON file")
 ap.add_argument("--blend", action='store_true' ,help = "overlay all videos in the time range. Only applicable if using --from --to")
+ap.add_argument("--minblendarea",help = "minimum area in pixels to accept as object of interest in forgeground extraction. Only applicable if using--blend", type=float)
+
+
 ap.add_argument("--display", action='store_true' ,help = "displays processed frames. Only applicable if using --blend")
 ap.add_argument("--objectonly", action='store_true' ,help = "Only process events where objects are detected. Only applicable if using --blend")
+ap.add_argument("--alarmonly", action='store_true' ,help = "Only process events which have at least 1 alarmed frame")
+
 
 ap.add_argument('--present', dest='present', action='store_true', help='look for frames where image in --match is present')
 ap.add_argument('--not-present', dest='present', action='store_false', help='look for frames where image in --match is NOT present')

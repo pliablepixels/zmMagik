@@ -96,6 +96,8 @@ def blend_video(input_file=None, out_file=None, eid = None, mid = None, starttim
             analyze = False
             relevant = True
 
+        # draw mask on blend frame
+        cv2.polylines(frame_b, [g.raw_poly_mask], True, (255,255,255), thickness=2)
 
         if analyze:
             frame_mask = g.fgbg.apply(frame)
@@ -119,7 +121,7 @@ def blend_video(input_file=None, out_file=None, eid = None, mid = None, starttim
             relevant = False;
             for c in ctrs:
                 area = cv2.contourArea(c)
-                if area > 2500:
+                if area >= g.min_blend_area:
                     relevant = True
                     x,y,w,h = cv2.boundingRect(c)
                     pts = Polygon([[x,y], [x+w,y], [x+w, y+h], [x,y+h]])

@@ -4,6 +4,7 @@ import cv2
 import dateparser
 import configargparse
 import numpy as np
+from datetime import datetime, timedelta
 
 
 import zmMagik_helpers.globals as g
@@ -40,7 +41,9 @@ def process_config():
     if g.args['mask']:
         parr = str2arr(g.args['mask'])
         if g.args['resize']:
+            resize = g.args['resize']
             parr =(parr*resize).astype(int)
+        g.raw_poly_mask = parr
         g.poly_mask = Polygon(parr)
     
     if g.args['find']:
@@ -80,7 +83,9 @@ def process_config():
     if g.args['monitors']:
         g.mon_list = [int(item) for item in g.args['monitors'].split(',')]
 
-    
+    if g.args['minblendarea']:
+        g.min_blend_area = g.args['minblendarea']
+
     if not g.args['find'] and not g.args['blend']:
         fail_print('You need to specify either --find or --blend')
         exit(1)
