@@ -11,9 +11,9 @@ As of today, it lets you:
 
 Why
 ----
-* I came home one day to see my trash can cover went missing. I thought it would be fun to write a tool that could search through my events to let me know when it went missing. Yep, it started with trash talking.
+* I came home one day to see my trash can cover went missing. I thought it would be fun to write a tool that could search through my events to let me know when it went missing. Yep, it started with trash talking
 
-* Andy posted an example of how other vendors blend multiple videos to give a common view quickly. I thought it would be fun to try.
+* Andy posted an example of how other vendors blend multiple videos to give a common view quickly. I thought it would be fun to try
 
 Limitations
 ------------
