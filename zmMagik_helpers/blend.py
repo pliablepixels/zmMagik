@@ -164,21 +164,21 @@ def blend_video(input_file=None, out_file=None, eid = None, mid = None, starttim
                 if cv2.waitKey(1) & 0xFF == ord('q'):
                     exit(1)
 
-        if relevant or 1:
+        # we write if either new frame has foreground, or there is a blend to write
+        if relevant or succ_b:
             outf.write(merged_frame)
+
         else:
             #print ('irrelevant frame {}'.format(frame_cnt))
             pass
         
-
    
 
     bar.close()
-   
     vid.release()
     outf.release()
     if vid_blend: vid_blend.release() 
-    input("Press Enter to continue...")
+    #input("Press Enter to continue...")
     try:
         os.remove('blended.mp4')
     except:
