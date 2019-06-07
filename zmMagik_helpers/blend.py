@@ -28,6 +28,7 @@ def blend_video(input_file=None, out_file=None, eid = None, mid = None, starttim
 
     if os.path.isfile('blended.mp4'):
         vid_blend = cv2.VideoCapture('blended.mp4')
+        #utils.dim_print('Video blend {}'.format(vid_blend))
     else:
         vid_blend = None
         print ('blend file will be created in this iteration')
@@ -57,8 +58,9 @@ def blend_video(input_file=None, out_file=None, eid = None, mid = None, starttim
     #fgbg = cv2.createBackgroundSubtractorMOG2(history=5, varThreshold=50, detectShadows=True)
     #fgbg = cv2.createBackgroundSubtractorMOG2()
     while True:
+
         succ, frame = vid.read()
-        relevant = True
+        succ_b = False
         frame_cnt = frame_cnt + 1
         bar.update(1) 
         if frame_cnt % fps_skip: 
@@ -70,76 +72,79 @@ def blend_video(input_file=None, out_file=None, eid = None, mid = None, starttim
             resize = g.args['resize']
             rh, rw, rl = frame.shape
             frame = cv2.resize(frame, (int(rw*resize), int(rh*resize)))
-        succ_b = False
+
+       
         if vid_blend: succ_b, frame_b = vid_blend.read()
-       # print (succ, succ_b)
+        #print (succ, succ_b)
         if not succ and not succ_b:
             utils.dim_print ('both videos are done')
             break
        
         # now populate frame and frame_b correctly:
+        analyze = True
 
-        if (succ and not vid_blend):
+        if (succ and not succ_b):
+           # print ('blend over')
             frame_b = frame.copy()
 
         elif (not succ and succ_b):
+            #print ('new video over')
             frame = frame_b.copy()
-        
-        elif (not succ_b and succ):
-            frame_b = frame.copy()
-
-     
-        relevant = False
-
-        frame_mask = g.fgbg.apply(frame)
-        frame_mask = cv2.morphologyEx(frame_mask, cv2.MORPH_OPEN, g.kernel_clean)
-        frame_mask = cv2.morphologyEx(frame_mask, cv2.MORPH_CLOSE, g.kernel_fill)
-        
-        # don't need this as shadows are off
-        # remove grey areas
-        #indices = frame_mask > 100
-        #frame_mask[indices] = 255
-        # get only foreground images from the new frame
-        foreground_a = cv2.bitwise_and(frame,frame, mask=frame_mask)
-        # clear out parts on blended frames where forground will be added
-        frame_mask_inv = cv2.bitwise_not(frame_mask)
-        #print (frame_mask_inv)
-        modified_frame_b = cv2.bitwise_and(frame_b, frame_b, mask=frame_mask_inv)
-
-        ctrs,_ =  cv2.findContours(frame_mask.copy(), cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
-        
-        merged_frame = cv2.add(modified_frame_b, foreground_a)
-        relevant = False;
-        for c in ctrs:
-            area = cv2.contourArea(c)
-            if area > 2500:
-                relevant = True
-                x,y,w,h = cv2.boundingRect(c)
-                pts = Polygon([[x,y], [x+w,y], [x+w, y+h], [x,y+h]])
-                #print (pts)
-                if g.poly_mask is None or g.poly_mask.intersects(pts):
-                    text = '{}s, Frame: {}'.format(int(frame_cnt/orig_fps), frame_cnt)
-                    if starttime:
-                        st = dateparser.parse(starttime)
-                        #from_time = to_time - datetime.timedelta(hours = 1)
-                        # print (st)
-                        dt = st + timedelta(seconds=int(frame_cnt/orig_fps))
-                        text = dt.strftime('%b %d, %I:%M%p')
-                    (tw, th) = cv2.getTextSize(text, cv2.FONT_HERSHEY_PLAIN, fontScale=1.5, thickness=2)[0]
-
-                    loc_x1 = x
-                    loc_y1 = y - th - 4
-                    loc_x2 = x + tw + 4
-                    loc_y2 = y
+            merged_frame = frame
+            #frame_mask = np.ones(frame.shape,dtype='uint8')
+            # if we are only left with past blends, just write it
+            analyze = False
+            relevant = True
 
 
-                    cv2.rectangle(merged_frame, (loc_x1, loc_y1), (loc_x1+tw+4,loc_y1+th+4), (0,0,0), cv2.FILLED)
-                    cv2.putText(merged_frame, text, (loc_x1+2, loc_y2-2), cv2.FONT_HERSHEY_PLAIN, fontScale=1.0, color=(255,255,255), thickness=1)
-                    #cv2.rectangle(merged_frame,(x,y),(x+w,y+h),(0,255,0),2)
+        if analyze:
+            frame_mask = g.fgbg.apply(frame)
+            frame_mask = cv2.morphologyEx(frame_mask, cv2.MORPH_OPEN, g.kernel_clean)
+            frame_mask = cv2.morphologyEx(frame_mask, cv2.MORPH_CLOSE, g.kernel_fill)
+            
+            # don't need this as shadows are off
+            # remove grey areas
+            #indices = frame_mask > 100
+            #frame_mask[indices] = 255
+            # get only foreground images from the new frame
+            foreground_a = cv2.bitwise_and(frame,frame, mask=frame_mask)
+            # clear out parts on blended frames where forground will be added
+            frame_mask_inv = cv2.bitwise_not(frame_mask)
+            #print (frame_mask_inv)
+            modified_frame_b = cv2.bitwise_and(frame_b, frame_b, mask=frame_mask_inv)
+
+            ctrs,_ =  cv2.findContours(frame_mask.copy(), cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+            
+            merged_frame = cv2.add(modified_frame_b, foreground_a)
+            relevant = False;
+            for c in ctrs:
+                area = cv2.contourArea(c)
+                if area > 2500:
+                    relevant = True
+                    x,y,w,h = cv2.boundingRect(c)
+                    pts = Polygon([[x,y], [x+w,y], [x+w, y+h], [x,y+h]])
+                    #print (pts)
+                    if g.poly_mask is None or g.poly_mask.intersects(pts):
+                        text = '{}s, Frame: {}'.format(int(frame_cnt/orig_fps), frame_cnt)
+                        if starttime:
+                            st = dateparser.parse(starttime)
+                            #from_time = to_time - datetime.timedelta(hours = 1)
+                            # print (st)
+                            dt = st + timedelta(seconds=int(frame_cnt/orig_fps))
+                            text = dt.strftime('%b %d, %I:%M%p')
+                        (tw, th) = cv2.getTextSize(text, cv2.FONT_HERSHEY_PLAIN, fontScale=1.5, thickness=2)[0]
+
+                        loc_x1 = x
+                        loc_y1 = y - th - 4
+                        loc_x2 = x + tw + 4
+                        loc_y2 = y
 
 
-        if relevant:
-            if g.args['display']:
+                        cv2.rectangle(merged_frame, (loc_x1, loc_y1), (loc_x1+tw+4,loc_y1+th+4), (0,0,0), cv2.FILLED)
+                        cv2.putText(merged_frame, text, (loc_x1+2, loc_y2-2), cv2.FONT_HERSHEY_PLAIN, fontScale=1.0, color=(255,255,255), thickness=1)
+                        #cv2.rectangle(merged_frame,(x,y),(x+w,y+h),(0,255,0),2)
+
+        if g.args['display']:
                 x = 640
                 y = 480
                 r_frame_b = cv2.resize (frame_b, (x, y))
@@ -158,21 +163,25 @@ def blend_video(input_file=None, out_file=None, eid = None, mid = None, starttim
                 #cv2.imshow('frame_mask',frame_mask)
                 if cv2.waitKey(1) & 0xFF == ord('q'):
                     exit(1)
+
+        if relevant or 1:
             outf.write(merged_frame)
         else:
             #print ('irrelevant frame {}'.format(frame_cnt))
             pass
-       
+        
 
-    try:
-        os.remove('blended.mp4')
-    except:
-       pass
+   
 
     bar.close()
    
     vid.release()
     outf.release()
     if vid_blend: vid_blend.release() 
+    input("Press Enter to continue...")
+    try:
+        os.remove('blended.mp4')
+    except:
+       pass
     os.rename ('new-blended.mp4', 'blended.mp4')
     return False
