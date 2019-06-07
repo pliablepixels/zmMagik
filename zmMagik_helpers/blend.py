@@ -97,7 +97,7 @@ def blend_video(input_file=None, out_file=None, eid = None, mid = None, starttim
             relevant = True
 
         # draw mask on blend frame
-        cv2.polylines(frame_b, [g.raw_poly_mask], True, (255,255,255), thickness=2)
+        cv2.polylines(frame_b, [g.raw_poly_mask], True, (0,0,255), thickness=2)
 
         if analyze:
             frame_mask = g.fgbg.apply(frame)
