@@ -1,6 +1,6 @@
 What
 ----
-zmMagik will be a list of growing foo-magic things you can do with video images that ZM stores. _Probably_
+zmMagik will be a list of growing foo-magic things you can do with video images that ZM stores. _Probably..._
 
 Features
 ---------
