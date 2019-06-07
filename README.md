@@ -23,7 +23,7 @@ Limitations
 Installation
 ------------
 
-```
+```bash
 # needs python3, so you may need to use pip3 if you have 2.x as well
 git clone https://github.com/pliablepixels/zmMagik
 cd zmMagik
@@ -37,13 +37,13 @@ General note: do a `python ./zmMagik -h` to see all options. Remember, you can s
 
 * Create a blended event for monitor 11 in specified time range. config.ini has your ZM usename/password/portal etc so you don't need to type it in every time
 
-```
+```bash
 python ./magik.py --monitors=11 --from "yesterday, 7am" --to "today, 10am" --blend -c config.ini
 ```
 
 * Search when an object (image) went missing:
 
-```
+```bash
 python ./magik.py --monitors=7 --from "today, 7am" --to "today, 7pm" --find "amazonpackage.jpg" -c config.ini
 ```
 
