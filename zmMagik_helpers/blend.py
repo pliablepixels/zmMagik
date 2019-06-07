@@ -97,7 +97,7 @@ def blend_video(input_file=None, out_file=None, eid = None, mid = None, starttim
             relevant = True
 
         # draw mask on blend frame
-        cv2.polylines(frame_b, [g.raw_poly_mask], True, (0,0,255), thickness=2)
+        cv2.polylines(frame_b, [g.raw_poly_mask], True, (0,0,255), thickness=1)
 
         if analyze:
             frame_mask = g.fgbg.apply(frame)
@@ -134,7 +134,9 @@ def blend_video(input_file=None, out_file=None, eid = None, mid = None, starttim
                             # print (st)
                             dt = st + timedelta(seconds=int(frame_cnt/orig_fps))
                             text = dt.strftime('%b %d, %I:%M%p')
-                        (tw, th) = cv2.getTextSize(text, cv2.FONT_HERSHEY_PLAIN, fontScale=1.5, thickness=2)[0]
+                        
+                        text = text.upper()
+                        (tw, th) = cv2.getTextSize(text, cv2.FONT_HERSHEY_PLAIN, fontScale=g.args['fontscale'], thickness=2)[0]
 
                         loc_x1 = x
                         loc_y1 = y - th - 4
@@ -143,7 +145,7 @@ def blend_video(input_file=None, out_file=None, eid = None, mid = None, starttim
 
 
                         cv2.rectangle(merged_frame, (loc_x1, loc_y1), (loc_x1+tw+4,loc_y1+th+4), (0,0,0), cv2.FILLED)
-                        cv2.putText(merged_frame, text, (loc_x1+2, loc_y2-2), cv2.FONT_HERSHEY_PLAIN, fontScale=1.0, color=(255,255,255), thickness=1)
+                        cv2.putText(merged_frame, text, (loc_x1+2, loc_y2-2), cv2.FONT_HERSHEY_PLAIN, fontScale=g.args['fontscale'], color=(255,255,255), thickness=1)
                         #cv2.rectangle(merged_frame,(x,y),(x+w,y+h),(0,255,0),2)
 
         if g.args['display']:

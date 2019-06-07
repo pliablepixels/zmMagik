@@ -107,7 +107,7 @@ ap.add_argument("--resize", help = "resize factor (0.5 will halve) for both matc
 ap.add_argument("--dumpjson", action='store_true' ,help = "write analysis to JSON file")
 ap.add_argument("--blend", action='store_true' ,help = "overlay all videos in the time range. Only applicable if using --from --to")
 ap.add_argument("--minblendarea",help = "minimum area in pixels to accept as object of interest in forgeground extraction. Only applicable if using--blend", type=float)
-
+ap.add_argument("--fontscale",help = "Size of font scale (1, 1.5 etc). Only applicable if using--blend", type=float, default=1)
 
 ap.add_argument("--display", action='store_true' ,help = "displays processed frames. Only applicable if using --blend")
 ap.add_argument("--objectonly", action='store_true' ,help = "Only process events where objects are detected. Only applicable if using --blend")
