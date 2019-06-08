@@ -103,6 +103,7 @@ def blend_video(input_file=None, out_file=None, eid = None, mid = None, starttim
             frame_mask = g.fgbg.apply(frame)
             frame_mask = cv2.morphologyEx(frame_mask, cv2.MORPH_OPEN, g.kernel_clean)
             frame_mask = cv2.morphologyEx(frame_mask, cv2.MORPH_CLOSE, g.kernel_fill)
+            frame_mask = cv2.medianBlur(frame_mask,15)
             
             # don't need this as shadows are off
             # remove grey areas
