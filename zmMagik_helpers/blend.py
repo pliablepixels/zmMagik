@@ -10,7 +10,7 @@ import zmMagik_helpers.globals as g
 import zmMagik_helpers.log as log
 import zmMagik_helpers.detect_background as det_bk
 
-def blend_video(input_file=None, out_file=None, eid = None, mid = None, starttime=None):
+def blend_video(input_file=None, out_file=None, eid = None, mid = None, starttime=None, delay=0):
    
     print ('Blending: {}'.format(input_file))
 
@@ -58,7 +58,13 @@ def blend_video(input_file=None, out_file=None, eid = None, mid = None, starttim
     #fgbg = cv2.createBackgroundSubtractorMOG2()
     while True:
 
-        succ, frame = vid.read()
+        if (orig_fps * frame_cnt >= delay):
+            succ, frame = vid.read()
+        else:
+            succ = False
+            frame = None
+            utils.dim_print ('waiting for {}s'.format(delay))
+        
         succ_b = False
         frame_cnt = frame_cnt + 1
         bar.update(1) 
@@ -90,7 +96,10 @@ def blend_video(input_file=None, out_file=None, eid = None, mid = None, starttim
             #print ('new video over')
             frame = frame_b.copy()
             merged_frame = frame
-            #frame_mask = np.ones(frame.shape,dtype='uint8')
+            foreground_a = frame
+            #frame_mask = frame
+            #print (frame.shape)
+            frame_mask = np.ones(frame.shape,dtype=np.uint8)
             # if we are only left with past blends, just write it
             analyze = False
             relevant = True
@@ -116,7 +125,10 @@ def blend_video(input_file=None, out_file=None, eid = None, mid = None, starttim
                 r_frame = cv2.resize (frame, (x,y))
                 r_fga = cv2.resize (foreground_a, (x,y))
                 r_frame_mask = cv2.resize (frame_mask, (x, y))
-                r_frame_mask = cv2.cvtColor(r_frame_mask, cv2.COLOR_GRAY2BGR)
+                try:
+                    r_frame_mask = cv2.cvtColor(r_frame_mask, cv2.COLOR_GRAY2BGR)
+                except:
+                    pass
                 r_merged_frame = cv2.resize (merged_frame, (x, y))
                 h1 = np.hstack((r_frame, r_frame_mask))
                 h2 = np.hstack((r_fga, r_merged_frame))
