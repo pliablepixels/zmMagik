@@ -35,6 +35,7 @@ def blend_video(input_file=None, out_file=None, eid = None, mid = None, starttim
 
     fourcc = cv2.VideoWriter_fourcc(*'mp4v')
     outf = cv2.VideoWriter('new-blended.mp4', fourcc, orig_fps, (width,height)) 
+    utils.bold_print('Output video will be {}fps'.format(orig_fps))
 
     if g.args['skipframes']:
         fps_skip = g.args['skipframes']
@@ -100,8 +101,8 @@ def blend_video(input_file=None, out_file=None, eid = None, mid = None, starttim
             #frame_mask = frame
             #print (frame.shape)
             h,w,_ = frame.shape
-            frame_mask = np.ones((w,h),dtype=np.uint8)
-            #print (frame_mask.shape)
+            frame_mask = np.ones((h,w),dtype=np.uint8)
+            print (frame_mask.shape)
             # if we are only left with past blends, just write it
             analyze = False
             relevant = True
