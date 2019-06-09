@@ -21,7 +21,7 @@ def blend_video(input_file=None, out_file=None, eid = None, mid = None, starttim
     height = int(vid.get(4))
     if g.args['resize']:
         resize = g.args['resize']
-        print (width,height, resize)
+       # print (width,height, resize)
         width = int(width * resize)
         height = int(height * resize)
 
@@ -99,7 +99,9 @@ def blend_video(input_file=None, out_file=None, eid = None, mid = None, starttim
             foreground_a = frame
             #frame_mask = frame
             #print (frame.shape)
-            frame_mask = np.ones(frame.shape,dtype=np.uint8)
+            h,w,_ = frame.shape
+            frame_mask = np.ones((w,h),dtype=np.uint8)
+            #print (frame_mask.shape)
             # if we are only left with past blends, just write it
             analyze = False
             relevant = True
@@ -110,6 +112,7 @@ def blend_video(input_file=None, out_file=None, eid = None, mid = None, starttim
         if analyze:
             
             merged_frame, foreground_a, frame_mask, relevant = det.detect(frame, frame_b, frame_cnt, orig_fps, starttime)
+            #print (frame_mask.shape)
             
             # don't need this as shadows are off
             # remove grey areas
@@ -125,10 +128,7 @@ def blend_video(input_file=None, out_file=None, eid = None, mid = None, starttim
                 r_frame = cv2.resize (frame, (x,y))
                 r_fga = cv2.resize (foreground_a, (x,y))
                 r_frame_mask = cv2.resize (frame_mask, (x, y))
-                try:
-                    r_frame_mask = cv2.cvtColor(r_frame_mask, cv2.COLOR_GRAY2BGR)
-                except:
-                    pass
+                r_frame_mask = cv2.cvtColor(r_frame_mask, cv2.COLOR_GRAY2BGR)
                 r_merged_frame = cv2.resize (merged_frame, (x, y))
                 h1 = np.hstack((r_frame, r_frame_mask))
                 h2 = np.hstack((r_fga, r_merged_frame))
