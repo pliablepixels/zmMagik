@@ -39,17 +39,24 @@ class DetectBackground:
         #fgbg=cv2.bgsegm.createBackgroundSubtractorLSBP()
 
     def detect(self,frame, frame_b, frame_cnt, orig_fps, starttime):
-        frame_mask = g.fgbg.apply(frame)
-        frame_mask = cv2.morphologyEx(frame_mask, cv2.MORPH_OPEN, g.kernel_clean)
-        frame_mask = cv2.morphologyEx(frame_mask, cv2.MORPH_CLOSE, g.kernel_fill)
+        frame_mask = self.fgbg.apply(frame)
+        frame_mask = cv2.morphologyEx(frame_mask, cv2.MORPH_OPEN, self.kernel_clean)
+        frame_mask = cv2.morphologyEx(frame_mask, cv2.MORPH_CLOSE, self.kernel_fill)
         frame_mask = cv2.medianBlur(frame_mask,15)
+
+        # foreground extraction of new frame
         foreground_a = cv2.bitwise_and(frame,frame, mask=frame_mask)
-        # clear out parts on blended frames where forground will be added
+
+        # clear out parts on blended frames where foreground will be added
         frame_mask_inv = cv2.bitwise_not(frame_mask)
-        #print (frame_mask_inv)
+        # blend frame with foreground a missing
         modified_frame_b = cv2.bitwise_and(frame_b, frame_b, mask=frame_mask_inv)
+        # new frame with foreground missing
+        #modified_frame = cv2.bitwise_and(frame, frame, mask=frame_mask_inv)
+        #modified_frame_b = cv2.addWeighted(modified_frame_b, 0.5, modified_frame, 0.5, 0)
 
         ctrs,_ =  cv2.findContours(frame_mask.copy(), cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+
         merged_frame = cv2.add(modified_frame_b, foreground_a)
         relevant = False;
         for c in ctrs:
