@@ -116,7 +116,16 @@ def blend_video(input_file=None, out_file=None, eid = None, mid = None, starttim
         
 
         if analyze:
-            frame_b = utils.hist_match(frame_b, frame)    
+            intensity = np.mean(frame)
+            intensity_b = np.mean(frame_b)
+            if intensity > intensity_b:
+                # new frame is brighter
+                frame_b = utils.hist_match(frame_b, frame) 
+            else:
+                # blend is brighter
+                frame = utils.hist_match(frame, frame_b)     
+
+               
             merged_frame, foreground_a, frame_mask, relevant = det.detect(frame, frame_b, frame_cnt, orig_fps, starttime)
             #print (frame_mask.shape)
             

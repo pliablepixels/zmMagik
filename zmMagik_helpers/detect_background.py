@@ -48,8 +48,6 @@ class DetectBackground:
         # dilate
         frame_mask = cv2.dilate(frame_mask,self.kernel_fill,iterations = 1)
        
-
-
         # lets clean up the mask now
         # find contours, fill in areas that matter, discard rest
         copy_frame_mask = frame_mask.copy()
@@ -57,7 +55,7 @@ class DetectBackground:
         new_frame_mask = np.zeros((h,w),dtype=np.uint8)
         #print (new_frame_mask.shape)
         relevant = False
-        ctrs,_ =  cv2.findContours(copy_frame_mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+        ctrs,_ =  cv2.findContours(copy_frame_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
         rects = []
         for contour in ctrs:
             area = cv2.contourArea(contour)
