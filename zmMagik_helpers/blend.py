@@ -113,10 +113,10 @@ def blend_video(input_file=None, out_file=None, eid = None, mid = None, starttim
             analyze = False
             relevant = True
 
-       
+        
 
         if analyze:
-            
+            frame_b = utils.hist_match(frame_b, frame)    
             merged_frame, foreground_a, frame_mask, relevant = det.detect(frame, frame_b, frame_cnt, orig_fps, starttime)
             #print (frame_mask.shape)
             

@@ -8,8 +8,8 @@ password=password
 portal=https://portal/zm
 objectonly=False
 display=True
-alarmonly=False
-minblendarea=100
+alarmonly=True
+minblendarea=1500
 
 #doorbell
 #mask=4,406 1276,411 1279,719 0,719
@@ -21,3 +21,4 @@ minblendarea=100
 # worsens detection
 skipframes=1
 fontscale=0.8
+resize=0.5

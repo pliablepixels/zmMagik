@@ -9,6 +9,26 @@ from datetime import datetime, timedelta
 
 import zmMagik_helpers.globals as g
 
+
+def hist_match(source, template):
+#https://stackoverflow.com/questions/32655686/histogram-matching-of-two-images-in-python-2-x
+    olddtype = source.dtype
+    oldshape = source.shape
+    source = source.ravel()
+    template = template.ravel()
+
+    s_values, bin_idx, s_counts = np.unique(source, return_inverse=True,
+                                            return_counts=True)
+    t_values, t_counts = np.unique(template, return_counts=True)
+    s_quantiles = np.cumsum(s_counts).astype(np.float64)
+    s_quantiles /= s_quantiles[-1]
+    t_quantiles = np.cumsum(t_counts).astype(np.float64)
+    t_quantiles /= t_quantiles[-1]
+    interp_t_values = np.interp(s_quantiles, t_quantiles, t_values)
+    interp_t_values = interp_t_values.astype(olddtype)
+
+    return interp_t_values[bin_idx].reshape(oldshape)
+
 def init_colorama():
     init()
 
@@ -63,7 +83,8 @@ def process_config():
             to_time= datetime.now()
             
         if g.args['from']:
-            from_time= dateparser.parse(g.args['from'])
+            from_time = dateparser.parse(g.args['from'])
+            print (from_time)
         else:
             from_time = to_time - timedelta(hours = 1)
 

@@ -8,7 +8,7 @@ import dateparser
 from datetime import datetime, timedelta
 
 class DetectBackground:
-    def __init__(self, min_accuracy=0.7, min_blend_area=2500, kernel_fill=20, dist_threshold=15000, history=150):
+    def __init__(self, min_accuracy=0.7, min_blend_area=2500, kernel_fill=5, dist_threshold=15000, history=150):
         self.min_accuracy = max (min_accuracy, 0.7)
         self.min_blend_area = min_blend_area
         self.kernel_clean = cv2.getStructuringElement(cv2.MORPH_ELLIPSE,(3,3))
@@ -45,8 +45,9 @@ class DetectBackground:
 
         # remove noise
         frame_mask = cv2.morphologyEx(frame_mask, cv2.MORPH_OPEN, self.kernel_clean)
-        #frame_mask = cv2.morphologyEx(frame_mask, cv2.MORPH_CLOSE, self.kernel_fill)
-        frame_mask = cv2.medianBlur(frame_mask,15)
+        # dilate
+        frame_mask = cv2.dilate(frame_mask,self.kernel_fill,iterations = 1)
+       
 
 
         # lets clean up the mask now
@@ -71,6 +72,8 @@ class DetectBackground:
 
         
         frame_mask = new_frame_mask
+        
+        frame_mask = cv2.medianBlur(frame_mask,15)
         # foreground extraction of new frame
         foreground_a = cv2.bitwise_and(frame,frame, mask=frame_mask)
         # clear out parts on blended frames where foreground will be added
