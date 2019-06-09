@@ -16,7 +16,13 @@ def blend_video(input_file=None, out_file=None, eid = None, mid = None, starttim
 
     det = det_bk.DetectBackground(min_accuracy = g.args['threshold'], min_blend_area=g.args['minblendarea'])
     vid = cv2.VideoCapture(input_file)
-    orig_fps = max(1, (g.args['fps'] or int(vid.get(cv2.CAP_PROP_FPS))))
+
+    if not g.orig_fps:
+        orig_fps = max(1, (g.args['fps'] or int(vid.get(cv2.CAP_PROP_FPS))))
+        g.orig_fps = orig_fps
+    else:
+        orig_fps = g.orig_fps
+        
     width  = int(vid.get(3))
     height = int(vid.get(4))
     if g.args['resize']:
@@ -107,8 +113,7 @@ def blend_video(input_file=None, out_file=None, eid = None, mid = None, starttim
             analyze = False
             relevant = True
 
-        # draw mask on blend frame
-        cv2.polylines(frame_b, [g.raw_poly_mask], True, (0,0,255), thickness=1)
+       
 
         if analyze:
             

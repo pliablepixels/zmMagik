@@ -73,14 +73,15 @@ class DetectBackground:
         frame_mask = new_frame_mask
         # foreground extraction of new frame
         foreground_a = cv2.bitwise_and(frame,frame, mask=frame_mask)
-       
-
         # clear out parts on blended frames where foreground will be added
         frame_mask_inv = cv2.bitwise_not(frame_mask)
         # blend frame with foreground a missing
         modified_frame_b = cv2.bitwise_and(frame_b, frame_b, mask=frame_mask_inv)
-       
         merged_frame = cv2.add(modified_frame_b, foreground_a)
+
+
+         # draw mask on blend frame
+        cv2.polylines(merged_frame, [g.raw_poly_mask], True, (0,0,255), thickness=1)
 
         # now draw times
         for rect in rects:
