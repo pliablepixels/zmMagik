@@ -14,7 +14,7 @@ def blend_video(input_file=None, out_file=None, eid = None, mid = None, starttim
    
     print ('Blending: {}'.format(input_file))
 
-    det = det_bk.DetectBackground()
+    det = det_bk.DetectBackground(min_accuracy = g.args['threshold'], min_blend_area=g.args['minblendarea'])
     vid = cv2.VideoCapture(input_file)
     orig_fps = max(1, (g.args['fps'] or int(vid.get(cv2.CAP_PROP_FPS))))
     width  = int(vid.get(3))

@@ -8,7 +8,7 @@ import dateparser
 from datetime import datetime, timedelta
 
 class DetectBackground:
-    def __init__(self, min_accuracy=0.7, min_blend_area=2500, kernel_fill=30, dist_threshold=10000, history=5):
+    def __init__(self, min_accuracy=0.7, min_blend_area=2500, kernel_fill=40, dist_threshold=15000, history=120):
         self.min_accuracy = max (min_accuracy, 0.7)
         self.min_blend_area = min_blend_area
         self.kernel_clean = cv2.getStructuringElement(cv2.MORPH_ELLIPSE,(3,3))
