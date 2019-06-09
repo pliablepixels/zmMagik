@@ -22,7 +22,7 @@ def blend_video(input_file=None, out_file=None, eid = None, mid = None, starttim
         g.orig_fps = orig_fps
     else:
         orig_fps = g.orig_fps
-        
+
     width  = int(vid.get(3))
     height = int(vid.get(4))
     if g.args['resize']:
@@ -108,7 +108,7 @@ def blend_video(input_file=None, out_file=None, eid = None, mid = None, starttim
             #print (frame.shape)
             h,w,_ = frame.shape
             frame_mask = np.ones((h,w),dtype=np.uint8)
-            print (frame_mask.shape)
+           # print (frame_mask.shape)
             # if we are only left with past blends, just write it
             analyze = False
             relevant = True

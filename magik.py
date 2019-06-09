@@ -75,7 +75,7 @@ def process_timeline():
         #print (in_file, out_file)
         if g.args['blend']:
             res = zmm_blend.blend_video(input_file = in_file, out_file = g.out_file, eid = event['Event']['Id'],mid = event['Event']['MonitorId'], starttime=event['Event']['StartTime'], delay=delay )
-            delay = delay + 2
+            delay = delay + 1
         else:
             res = zmm_search.search_video(input_file = in_file, out_file = g.out_file, eid = event['Event']['Id'],mid = event['Event']['MonitorId'] )
         if not g.args['all'] and res:
