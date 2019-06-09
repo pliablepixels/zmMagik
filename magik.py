@@ -93,7 +93,7 @@ ap.add_argument("--find",  help="image to look for (needs to be same size/orient
 ap.add_argument("--mask",  help="polygon points of interest within video being processed")
 ap.add_argument("--skipframes", help="how many frames to skip", type=int)
 ap.add_argument("--fps", help="fps of video, to get timing correct", type=int)
-ap.add_argument("--threshold", help="a number between 0 to 1 on accuracy threshold. 0.7 or above required", type=float)
+ap.add_argument("--threshold", help="a number between 0 to 1 on accuracy threshold. 0.7 or above required", type=float, default=0.7)
 ap.add_argument("-a", "--all", action='store_true', help="process all frames, don't stop at first find")
 ap.add_argument("-w", "--write", action='store_true', help="create video with matched frames")
 ap.add_argument("--eventid",  help="Event id")

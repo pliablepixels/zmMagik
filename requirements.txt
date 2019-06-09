@@ -1,8 +1,8 @@
-colorama>=0.4.1
-ConfigArgParse>=0.14.0
-requests>=2.21.0
-opencv_python>=4.0.0.21
 dateparser>=0.7.1
-Shapely>=1.6.4.post2
-tqdm>=4.32.1
 numpy>=1.16.0
+Shapely>=1.6.4.post2
+requests>=2.21.0
+tqdm>=4.32.1
+ConfigArgParse>=0.14.0
+opencv_python>=4.0.0.21
+colorama>=0.4.1

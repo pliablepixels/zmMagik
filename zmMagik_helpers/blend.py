@@ -3,19 +3,18 @@ import cv2
 import time
 from tqdm import tqdm
 import os
-from shapely.geometry import Polygon
-import dateparser 
-from datetime import datetime, timedelta
 import numpy as np
 
 import zmMagik_helpers.utils as utils
 import zmMagik_helpers.globals as g
 import zmMagik_helpers.log as log
+import zmMagik_helpers.detect_background as det_bk
 
 def blend_video(input_file=None, out_file=None, eid = None, mid = None, starttime=None):
    
     print ('Blending: {}'.format(input_file))
 
+    det = det_bk.DetectBackground()
     vid = cv2.VideoCapture(input_file)
     orig_fps = max(1, (g.args['fps'] or int(vid.get(cv2.CAP_PROP_FPS))))
     width  = int(vid.get(3))
@@ -100,66 +99,27 @@ def blend_video(input_file=None, out_file=None, eid = None, mid = None, starttim
         cv2.polylines(frame_b, [g.raw_poly_mask], True, (0,0,255), thickness=1)
 
         if analyze:
-            frame_mask = g.fgbg.apply(frame)
-            frame_mask = cv2.morphologyEx(frame_mask, cv2.MORPH_OPEN, g.kernel_clean)
-            frame_mask = cv2.morphologyEx(frame_mask, cv2.MORPH_CLOSE, g.kernel_fill)
-            frame_mask = cv2.medianBlur(frame_mask,15)
+            
+            merged_frame, foreground_a, frame_mask, relevant = det.detect(frame, frame_b, frame_cnt, orig_fps, starttime)
             
             # don't need this as shadows are off
             # remove grey areas
             #indices = frame_mask > 100
             #frame_mask[indices] = 255
             # get only foreground images from the new frame
-            foreground_a = cv2.bitwise_and(frame,frame, mask=frame_mask)
-            # clear out parts on blended frames where forground will be added
-            frame_mask_inv = cv2.bitwise_not(frame_mask)
-            #print (frame_mask_inv)
-            modified_frame_b = cv2.bitwise_and(frame_b, frame_b, mask=frame_mask_inv)
-
-            ctrs,_ =  cv2.findContours(frame_mask.copy(), cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
             
-            merged_frame = cv2.add(modified_frame_b, foreground_a)
-            relevant = False;
-            for c in ctrs:
-                area = cv2.contourArea(c)
-                if area >= g.min_blend_area:
-                    relevant = True
-                    x,y,w,h = cv2.boundingRect(c)
-                    pts = Polygon([[x,y], [x+w,y], [x+w, y+h], [x,y+h]])
-                    #print (pts)
-                    if g.poly_mask is None or g.poly_mask.intersects(pts):
-                        text = '{}s, Frame: {}'.format(int(frame_cnt/orig_fps), frame_cnt)
-                        if starttime:
-                            st = dateparser.parse(starttime)
-                            #from_time = to_time - datetime.timedelta(hours = 1)
-                            # print (st)
-                            dt = st + timedelta(seconds=int(frame_cnt/orig_fps))
-                            text = dt.strftime('%b %d, %I:%M%p')
-                        
-                        text = text.upper()
-                        (tw, th) = cv2.getTextSize(text, cv2.FONT_HERSHEY_PLAIN, fontScale=g.args['fontscale'], thickness=2)[0]
-
-                        loc_x1 = x
-                        loc_y1 = y - th - 4
-                        loc_x2 = x + tw + 4
-                        loc_y2 = y
-
-
-                        cv2.rectangle(merged_frame, (loc_x1, loc_y1), (loc_x1+tw+4,loc_y1+th+4), (0,0,0), cv2.FILLED)
-                        cv2.putText(merged_frame, text, (loc_x1+2, loc_y2-2), cv2.FONT_HERSHEY_PLAIN, fontScale=g.args['fontscale'], color=(255,255,255), thickness=1)
-                        #cv2.rectangle(merged_frame,(x,y),(x+w,y+h),(0,255,0),2)
 
         if g.args['display']:
-                x = 640
-                y = 480
+                x = 320
+                y = 240
                 r_frame_b = cv2.resize (frame_b, (x, y))
                 r_frame = cv2.resize (frame, (x,y))
                 r_fga = cv2.resize (foreground_a, (x,y))
                 r_frame_mask = cv2.resize (frame_mask, (x, y))
                 r_frame_mask = cv2.cvtColor(r_frame_mask, cv2.COLOR_GRAY2BGR)
                 r_merged_frame = cv2.resize (merged_frame, (x, y))
-                h1 = np.hstack((r_frame, r_frame_b))
-                h2 = np.hstack((r_frame_mask, r_merged_frame))
+                h1 = np.hstack((r_frame, r_frame_mask))
+                h2 = np.hstack((r_fga, r_merged_frame))
                 f = np.vstack((h1,h2))
                 cv2.imshow('display', f)
                 #cv2.imshow('merged_frame',cv2.resize(merged_frame, (640,480)))

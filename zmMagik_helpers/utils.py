@@ -53,13 +53,6 @@ def process_config():
             g.template = cv2.resize(g.template, (int(rw*resize), int(rh*resize)))
         g.template = cv2.cvtColor(g.template, cv2.COLOR_BGR2GRAY)
 
-    if g.args['threshold']:
-        if g.args['threshold'] < g.MIN_ACCURACY:
-            # like I said earlier, anything < 0.7 seems to be a 'non match'
-            print ('Accuracy too low, setting to {}'.format(g.MIN_ACCURACY))
-            g.args['threshold'] = g.MIN_ACCURACY
-    else:
-        g.args['threshold'] = g.MIN_ACCURACY
 
     # if either from or to is specified, populate both ranges
     # if not, leave it as None
