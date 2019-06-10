@@ -69,6 +69,11 @@ def process_timeline():
         in_file = url_download
 
         print ('\n==============| Processing Event: {} Monitor: {} ({} of {})|============='.format(event['Event']['Id'],event['Event']['MonitorId'], cnt, len(events)))
+
+        #print ("VIDEO ID IS:",event['Event']['DefaultVideo'])
+        if event['Event']['DefaultVideo'] is "":
+           utils.fail_print ("ERROR: only mp4 events supported, skipping")
+           continue
         if g.args['download']:
             in_file =  event['Event']['Id']+'.mp4'
             utils.dim_print ('downloading {}'.format(url_download))

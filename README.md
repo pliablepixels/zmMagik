@@ -19,6 +19,7 @@ Limitations
 ------------
 * Only works with video mp4 files. Did not bother adding support for JPEG store
 * Very, very, very, pre-alpha
+* Multi-server most likely won't work
 
 Installation
 ------------
