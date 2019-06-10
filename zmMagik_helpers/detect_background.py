@@ -69,7 +69,7 @@ class DetectBackground:
                     relevant = True
                     cv2.drawContours(new_frame_mask, [contour], -1, (255, 255, 255), -1)
                     rects.append([x,y,w,h])
-                    cv2.rectangle(frame, (x, y), (x+w, y+h), (255,0,0), 2)
+                    
 
         frame_mask = cv2.dilate(new_frame_mask,self.kernel_fill,iterations = 5)
         frame_mask = new_frame_mask
@@ -93,6 +93,8 @@ class DetectBackground:
         # now draw times
         for rect in rects:
             x,y,w,h = rect
+            # draw blue boxes after all intelligence is done
+            cv2.rectangle(frame, (x, y), (x+w, y+h), (255,0,0), 2)
             text = '{}s, Frame: {}'.format(int(frame_cnt/orig_fps), frame_cnt)
             if starttime:
                 st = dateparser.parse(starttime)

@@ -67,19 +67,35 @@ def process_timeline():
         #print (event['Event']['Id'])
         url_download= g.args['portal']+'/index.php?view=view_video&eid='+event['Event']['Id']+'&username='+g.args['username']+'&password='+g.args['password']
         in_file = url_download
-        #in_file =  event['Event']['Id']+'.mp4'
-        #utils.dim_print ('downloading {}'.format(url_download))
-        #urllib.request.urlretrieve(url_download, in_file)
-        g.out_file = 'analyzed-'+event['Event']['Id']+'.mp4'
+
         print ('\n==============| Processing Event: {} Monitor: {} ({} of {})|============='.format(event['Event']['Id'],event['Event']['MonitorId'], cnt, len(events)))
+        if g.args['download']:
+            in_file =  event['Event']['Id']+'.mp4'
+            utils.dim_print ('downloading {}'.format(url_download))
+            try:
+                urllib.request.urlretrieve(url_download, in_file)
+            except Exception as e:
+                utils.fail_print('ERROR:{}'.format(e))
+        
+        g.out_file = 'analyzed-'+event['Event']['Id']+'.mp4'
+       
         #print (in_file, out_file)
-        if g.args['blend']:
-            res = zmm_blend.blend_video(input_file = in_file, out_file = g.out_file, eid = event['Event']['Id'],mid = event['Event']['MonitorId'], starttime=event['Event']['StartTime'], delay=delay )
-            delay = delay + 1
-        else:
-            res = zmm_search.search_video(input_file = in_file, out_file = g.out_file, eid = event['Event']['Id'],mid = event['Event']['MonitorId'] )
-        if not g.args['all'] and res:
-            break
+        try:
+            if g.args['blend']:
+                res = zmm_blend.blend_video(input_file = in_file, out_file = g.out_file, eid = event['Event']['Id'],mid = event['Event']['MonitorId'], starttime=event['Event']['StartTime'], delay=delay )
+                delay = delay + 1
+            else:
+                res = zmm_search.search_video(input_file = in_file, out_file = g.out_file, eid = event['Event']['Id'],mid = event['Event']['MonitorId'] )
+            if not g.args['all'] and res:
+                break
+        except Exception as e:
+            utils.fail_print('ERROR:{}'.format(e))
+
+        if g.args['download']:
+            try:
+                os.remove(in_file)
+            except:
+                pass
     end_time = time.time()
     print ('\nTotal time: {:.2}s'.format(end_time-start_time))
 
@@ -110,6 +126,9 @@ ap.add_argument("--dumpjson", action='store_true' ,help = "write analysis to JSO
 ap.add_argument("--blend", action='store_true' ,help = "overlay all videos in the time range. Only applicable if using --from --to")
 ap.add_argument("--minblendarea",help = "minimum area in pixels to accept as object of interest in forgeground extraction. Only applicable if using--blend", type=float, default=1500)
 ap.add_argument("--fontscale",help = "Size of font scale (1, 1.5 etc). Only applicable if using--blend", type=float, default=1)
+
+
+ap.add_argument("--download", action='store_true' ,help = "Downloads remote videos first before analysis. Seems some openCV installations have problems with remote downloads")
 
 ap.add_argument("--display", action='store_true' ,help = "displays processed frames. Only applicable if using --blend")
 ap.add_argument("--objectonly", action='store_true' ,help = "Only process events where objects are detected. Only applicable if using --blend")
