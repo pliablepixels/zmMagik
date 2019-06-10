@@ -8,7 +8,8 @@ import dateparser
 from datetime import datetime, timedelta
 
 class DetectBackground:
-    def __init__(self, min_accuracy=0.7, min_blend_area=2500, kernel_fill=5, dist_threshold=15000, history=150):
+    # unspecified defaults come from config defaults
+    def __init__(self, min_accuracy, min_blend_area, kernel_fill=20, dist_threshold=15000, history=100):
         self.min_accuracy = max (min_accuracy, 0.7)
         self.min_blend_area = min_blend_area
         self.kernel_clean = cv2.getStructuringElement(cv2.MORPH_ELLIPSE,(3,3))
@@ -39,39 +40,44 @@ class DetectBackground:
         #fgbg=cv2.bgsegm.createBackgroundSubtractorLSBP()
 
     def detect(self,frame, frame_b, frame_cnt, orig_fps, starttime):
-
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
         frame_mask = self.fgbg.apply(gray)
-
         # remove noise
         frame_mask = cv2.morphologyEx(frame_mask, cv2.MORPH_OPEN, self.kernel_clean)
-        # dilate
-        frame_mask = cv2.dilate(frame_mask,self.kernel_fill,iterations = 1)
-       
-        # lets clean up the mask now
-        # find contours, fill in areas that matter, discard rest
-        copy_frame_mask = frame_mask.copy()
+        
         h,w,_ = frame.shape
         new_frame_mask = np.zeros((h,w),dtype=np.uint8)
-        #print (new_frame_mask.shape)
+      
+        frame_mask = cv2.medianBlur(frame_mask,15)
+
+        copy_frame_mask = frame_mask.copy()
+        # find contours of mask
         relevant = False
         ctrs,_ =  cv2.findContours(copy_frame_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
         rects = []
+        #print ('{} contours found'.format(len(ctrs)))
+
+        # only select relevant contours 
         for contour in ctrs:
             area = cv2.contourArea(contour)
             if area >= self.min_blend_area:
-                relevant = True
+                #relevant = True
                 x,y,w,h = cv2.boundingRect(contour)
                 pts = Polygon([[x,y], [x+w,y], [x+w, y+h], [x,y+h]])
                 #print (pts)
                 if g.poly_mask is None or g.poly_mask.intersects(pts):
+                    relevant = True
                     cv2.drawContours(new_frame_mask, [contour], -1, (255, 255, 255), -1)
                     rects.append([x,y,w,h])
+                    cv2.rectangle(frame, (x, y), (x+w, y+h), (255,0,0), 2)
 
-        
+        frame_mask = cv2.dilate(new_frame_mask,self.kernel_fill,iterations = 5)
         frame_mask = new_frame_mask
+
+       # print ("NEW",new_frame_mask.shape)
+       # print ("NEW NEW", new_new_frame_mask.shape)
         
-        frame_mask = cv2.medianBlur(frame_mask,15)
+      
         # foreground extraction of new frame
         foreground_a = cv2.bitwise_and(frame,frame, mask=frame_mask)
         # clear out parts on blended frames where foreground will be added

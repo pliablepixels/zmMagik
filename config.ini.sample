@@ -3,22 +3,19 @@
 # Simply do a -c <this config file> and add any other parameters you want in CLI
 # and they will be merged
 
-username=admin
+username=user
 password=password
 portal=https://portal/zm
 objectonly=False
 display=True
 alarmonly=True
 minblendarea=1500
-
-#doorbell
-#mask=4,406 1276,411 1279,719 0,719
-#driveway
-#mask=69,130 704,68 746,307 1167,716 0,719
-
-# try not to use a large skipframes. While it makes it faster,
-# it also means distance between background objects increase and that
-# worsens detection
+# doorbell
+# mask=4,406 1276,411 1279,719 0,719
+# driveway
+# mask=69,130 604,68 646,307 1167,616 0,619
 skipframes=1
 fontscale=0.8
-resize=0.5
+threshold=0.7
+resize = 0.5
+balanceintensity=True

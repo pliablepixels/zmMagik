@@ -95,7 +95,7 @@ ap.add_argument("--find",  help="image to look for (needs to be same size/orient
 ap.add_argument("--mask",  help="polygon points of interest within video being processed")
 ap.add_argument("--skipframes", help="how many frames to skip", type=int)
 ap.add_argument("--fps", help="fps of video, to get timing correct", type=int)
-ap.add_argument("--threshold", help="a number between 0 to 1 on accuracy threshold. 0.7 or above required", type=float, default=0.7)
+ap.add_argument("--threshold", help="a number between 0 to 1 on accuracy threshold. 0.7 or above required", type=float, default=0.7, choices=(0.7, 1.0))
 ap.add_argument("-a", "--all", action='store_true', help="process all frames, don't stop at first find")
 ap.add_argument("-w", "--write", action='store_true', help="create video with matched frames")
 ap.add_argument("--eventid",  help="Event id")
@@ -108,12 +108,13 @@ ap.add_argument("--monitors", help = "comma separated list of monitor IDs to sea
 ap.add_argument("--resize", help = "resize factor (0.5 will halve) for both matching template and video size", type=float)
 ap.add_argument("--dumpjson", action='store_true' ,help = "write analysis to JSON file")
 ap.add_argument("--blend", action='store_true' ,help = "overlay all videos in the time range. Only applicable if using --from --to")
-ap.add_argument("--minblendarea",help = "minimum area in pixels to accept as object of interest in forgeground extraction. Only applicable if using--blend", type=float)
+ap.add_argument("--minblendarea",help = "minimum area in pixels to accept as object of interest in forgeground extraction. Only applicable if using--blend", type=float, default=1500)
 ap.add_argument("--fontscale",help = "Size of font scale (1, 1.5 etc). Only applicable if using--blend", type=float, default=1)
 
 ap.add_argument("--display", action='store_true' ,help = "displays processed frames. Only applicable if using --blend")
 ap.add_argument("--objectonly", action='store_true' ,help = "Only process events where objects are detected. Only applicable if using --blend")
 ap.add_argument("--alarmonly", action='store_true' ,help = "Only process events which have at least 1 alarmed frame")
+ap.add_argument("--balanceintensity", action='store_true' ,help = "If enabled, will try and match frame intensities - the darker frame will be aligned to match the brighter one. May be useful for day to night transitions, or not :-p. Works with --blend")
 
 
 ap.add_argument('--present', dest='present', action='store_true', help='look for frames where image in --match is present')
