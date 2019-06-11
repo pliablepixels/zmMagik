@@ -14,6 +14,7 @@ def blend_video(input_file=None, out_file=None, eid = None, mid = None, starttim
    
     print ('Blending: {}'.format(input_file))
 
+    first_frame = True
     det = det_bk.DetectBackground(min_accuracy = g.args['threshold'], min_blend_area=g.args['minblendarea'])
     vid = cv2.VideoCapture(input_file)
     #print (vid)
@@ -156,8 +157,16 @@ def blend_video(input_file=None, out_file=None, eid = None, mid = None, starttim
                 #cv2.imshow('frame_mask',cv2.resize(frame_mask, (640,480)))
 
                 #cv2.imshow('frame_mask',frame_mask)
-                if cv2.waitKey(1) & 0xFF == ord('q'):
+                if g.args['interactive']:
+                    key = cv2.waitKey(0)
+                  
+                else:
+                    key = cv2.waitKey(1)
+                if key& 0xFF == ord('q'):
                     exit(1)
+                if key& 0xFF == ord('c'):
+                    g.args['interactive']=False
+                
 
         # we write if either new frame has foreground, or there is a blend to write
         if relevant or succ_b:

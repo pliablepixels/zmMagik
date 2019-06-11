@@ -12,22 +12,12 @@ class DetectBackground:
     def __init__(self, min_accuracy, min_blend_area, kernel_fill=20, dist_threshold=15000, history=100):
         self.min_accuracy = max (min_accuracy, 0.7)
         self.min_blend_area = min_blend_area
-        self.kernel_clean = cv2.getStructuringElement(cv2.MORPH_ELLIPSE,(3,3))
+        self.kernel_clean = cv2.getStructuringElement(cv2.MORPH_ELLIPSE,(4,4))
         self.kernel_fill = np.ones((kernel_fill,kernel_fill),np.uint8)
         self.dist_threshold = dist_threshold
         self.history = history
+   
 
-        '''
-        c = """
-        DetectBackground init:
-        minimum accuracy={}
-        minimum blend={}
-        fill for foreground={}
-        distance={}
-        history={}
-        """.format(min_accuracy,min_blend_area,kernel_fill, dist_threshold, history)
-        utils.dim_print(c)
-        '''
 
         # read https://docs.opencv.org/3.3.0/d2/d55/group__bgsegm.html#gae561c9701970d0e6b35ec12bae149814
 
@@ -40,43 +30,42 @@ class DetectBackground:
         #fgbg=cv2.bgsegm.createBackgroundSubtractorLSBP()
 
     def detect(self,frame, frame_b, frame_cnt, orig_fps, starttime):
-        gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-        frame_mask = self.fgbg.apply(gray)
+       
+        frame_hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
+        frame_hsv[:,:,0] = 0 # see if removing intensity helps
+       # gray = cv2.cvtColor(frame_hsv, cv2.COLOR_BGR2GRAY)
+
+        # create initial background subtraction
+        frame_mask = self.fgbg.apply(frame_hsv)
         # remove noise
         frame_mask = cv2.morphologyEx(frame_mask, cv2.MORPH_OPEN, self.kernel_clean)
+        # blur to merge nearby masks, hopefully
+        frame_mask = cv2.medianBlur(frame_mask,15)
+        #frame_mask = cv2.GaussianBlur(frame_mask,(5,5),cv2.BORDER_DEFAULT)
+        #frame_mask = cv2.blur(frame_mask,(20,20))
         
         h,w,_ = frame.shape
         new_frame_mask = np.zeros((h,w),dtype=np.uint8)
-      
-        frame_mask = cv2.medianBlur(frame_mask,15)
-
         copy_frame_mask = frame_mask.copy()
         # find contours of mask
         relevant = False
         ctrs,_ =  cv2.findContours(copy_frame_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
         rects = []
-        #print ('{} contours found'.format(len(ctrs)))
-
         # only select relevant contours 
         for contour in ctrs:
             area = cv2.contourArea(contour)
             if area >= self.min_blend_area:
-                #relevant = True
                 x,y,w,h = cv2.boundingRect(contour)
                 pts = Polygon([[x,y], [x+w,y], [x+w, y+h], [x,y+h]])
-                #print (pts)
                 if g.poly_mask is None or g.poly_mask.intersects(pts):
                     relevant = True
                     cv2.drawContours(new_frame_mask, [contour], -1, (255, 255, 255), -1)
                     rects.append([x,y,w,h])
                     
-
+        # do a dilation to again, combine the contours
         frame_mask = cv2.dilate(new_frame_mask,self.kernel_fill,iterations = 5)
         frame_mask = new_frame_mask
 
-       # print ("NEW",new_frame_mask.shape)
-       # print ("NEW NEW", new_new_frame_mask.shape)
-        
       
         # foreground extraction of new frame
         foreground_a = cv2.bitwise_and(frame,frame, mask=frame_mask)

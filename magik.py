@@ -119,6 +119,8 @@ ap.add_argument("--fps", help="fps of video, to get timing correct", type=int)
 ap.add_argument("--threshold", help="a number between 0 to 1 on accuracy threshold. 0.7 or above required", type=float, default=0.7, choices=(0.7, 1.0))
 ap.add_argument("-a", "--all", action='store_true', help="process all frames, don't stop at first find")
 ap.add_argument("-w", "--write", action='store_true', help="create video with matched frames")
+ap.add_argument("--interactive", action='store_true', help="move to next frame after keypress. Press 'c' to remove interactive")
+
 ap.add_argument("--eventid",  help="Event id")
 ap.add_argument("--username",  help="ZM username")
 ap.add_argument("--password",  help="ZM password")
