@@ -125,6 +125,11 @@ ap.add_argument("--eventid",  help="Event id")
 ap.add_argument("--username",  help="ZM username")
 ap.add_argument("--password",  help="ZM password")
 ap.add_argument("--portal",  help="ZM portal")
+ap.add_argument("--detection_type",  help="Type of detection for blending", default="background_extraction")
+ap.add_argument("--config_file",  help="Config file for ML based detection with full path")
+ap.add_argument("--weights_file",  help="Weights file for ML based detection with full path")
+ap.add_argument("--labels_file",  help="labels file for ML based detection with full path")
+
 ap.add_argument("--from", help = "arbitrary time range like '24 hours ago' or formal dates")
 ap.add_argument("--to", help = "arbitrary time range like '2 hours ago' or formal dates")
 ap.add_argument("--monitors", help = "comma separated list of monitor IDs to search")
@@ -149,6 +154,7 @@ ap.add_argument('--no-present', dest='present', action='store_false', help='look
 ap.set_defaults(present=True)
 g.args = vars(ap.parse_args())
 utils.process_config()
+if g.args['blend']: zmm_blend.blend_init()
 
 utils.dim_print('-----| Arguments to be used:')
 for k,v in g.args.items():

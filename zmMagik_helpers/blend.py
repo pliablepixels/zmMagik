@@ -8,14 +8,31 @@ import numpy as np
 import zmMagik_helpers.utils as utils
 import zmMagik_helpers.globals as g
 import zmMagik_helpers.log as log
-import zmMagik_helpers.detect_background as det_bk
+det = None
+
+def blend_init():
+    global det
+    #print (g.args['detection_type'])
+    if g.args['detection_type'] == 'background_extraction':
+        import zmMagik_helpers.detect_background as det
+        det = det.DetectBackground(min_accuracy = g.args['threshold'], min_blend_area=g.args['minblendarea'])
+
+    elif g.args['detection_type'] == 'yolo_extraction':
+        import zmMagik_helpers.detect_yolo as det
+        det = det.DetectYolo (configPath = g.args['config_file'],
+                              weightsPath = g.args['weights_file'],
+                              labelsPath =  g.args['labels_file'] )
+    
+
+    else:
+        raise ValueError ('Detection type {} is not known'.format(g.args['detection_type']))
 
 def blend_video(input_file=None, out_file=None, eid = None, mid = None, starttime=None, delay=0):
-   
+    global det
     print ('Blending: {}'.format(input_file))
 
     first_frame = True
-    det = det_bk.DetectBackground(min_accuracy = g.args['threshold'], min_blend_area=g.args['minblendarea'])
+    
     vid = cv2.VideoCapture(input_file)
     #print (vid)
     if not vid.isOpened(): 
@@ -130,7 +147,7 @@ def blend_video(input_file=None, out_file=None, eid = None, mid = None, starttim
                     # blend is brighter
                     frame = utils.hist_match(frame, frame_b)     
                
-            merged_frame, foreground_a, frame_mask, relevant = det.detect(frame, frame_b, frame_cnt, orig_fps, starttime)
+            merged_frame, foreground_a, frame_mask, relevant, boxed_frame = det.detect(frame, frame_b, frame_cnt, orig_fps, starttime)
             #print (frame_mask.shape)
             
             # don't need this as shadows are off
@@ -144,7 +161,7 @@ def blend_video(input_file=None, out_file=None, eid = None, mid = None, starttim
                 x = 320
                 y = 240
                 r_frame_b = cv2.resize (frame_b, (x, y))
-                r_frame = cv2.resize (frame, (x,y))
+                r_frame = cv2.resize (boxed_frame, (x,y))
                 r_fga = cv2.resize (foreground_a, (x,y))
                 r_frame_mask = cv2.resize (frame_mask, (x, y))
                 r_frame_mask = cv2.cvtColor(r_frame_mask, cv2.COLOR_GRAY2BGR)

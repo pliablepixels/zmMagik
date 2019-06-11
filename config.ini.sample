@@ -3,19 +3,29 @@
 # Simply do a -c <this config file> and add any other parameters you want in CLI
 # and they will be merged
 
-username=user
+username=admin
 password=password
-portal=https://portal/zm
+portal=https://server/zm
 objectonly=False
 display=True
 alarmonly=True
-minblendarea=1500
+minblendarea=500
 # doorbell
-# mask=4,406 1276,411 1279,719 0,719
-# driveway
-# mask=69,130 604,68 646,307 1167,616 0,619
-skipframes=1
+#mask=4,406 1276,411 1279,719 0,719
+
+#driveway
+#mask=69,130 604,68 646,307 1167,616 0,619
+skipframes=5
 fontscale=0.8
 threshold=0.7
 resize = 0.5
-balanceintensity=True
+balanceintensity=False
+
+# if you select yolo, make sure you have the config/weight/label files (yolo or tinyyolo files)
+#detection_type=yolo_extraction
+detection_type=background_extraction
+
+# you need these if you use yolo for detection
+#config_file=/path/yolov3.cfg
+#weights_file=/path/to/yolov3.weights
+#labels_file=/path/to/coco.names
