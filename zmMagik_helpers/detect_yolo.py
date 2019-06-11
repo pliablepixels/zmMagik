@@ -47,9 +47,11 @@ class DetectYolo:
                     (centerX, centerY, width, height) = box.astype("int")
                     x = int(centerX - (width / 2))
                     y = int(centerY - (height / 2))
-                    boxes.append([x, y, int(width), int(height)])
-                    confidences.append(float(confidence))
-                    classIDs.append(classID)
+                    pts = Polygon([[x,y], [x+width,y], [x+width, y+height], [x,y+height]])
+                    if g.poly_mask is None or g.poly_mask.intersects(pts):
+                        boxes.append([x, y, int(width), int(height)])
+                        confidences.append(float(confidence))
+                        classIDs.append(classID)
 
         idxs = cv2.dnn.NMSBoxes(boxes, confidences, g.args["threshold"], 0.3)
         boxed_frame = frame.copy()
@@ -96,10 +98,11 @@ class DetectYolo:
         # blend frame with foreground a missing
         modified_frame_b = cv2.bitwise_and(frame_b, frame_b, mask=frame_mask_inv)
 
-    
-        
-
         merged_frame = cv2.add(modified_frame_b, foreground_a)
+
+          # draw mask on blend frame
+        cv2.polylines(merged_frame, [g.raw_poly_mask], True, (0,0,255), thickness=1)
+
          
         #return merged_frame, foreground_a, frame_mask, relevant
         return merged_frame, foreground_a, frame_mask, relevant, boxed_frame
