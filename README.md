@@ -31,6 +31,14 @@ cd zmMagik
 pip install -r requirements.txt
 ```
 
+If you are using yolo extraction, you also need these files and make sure your config variables point to them
+```
+wget https://raw.githubusercontent.com/pjreddie/darknet/master/cfg/yolov3.cfg
+wget https://pjreddie.com/media/files/yolov3.weights
+wget https://raw.githubusercontent.com/pjreddie/darknet/master/data/coco.names
+```
+
+
 Examples
 ---------
 
