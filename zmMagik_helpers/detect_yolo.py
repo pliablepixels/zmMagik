@@ -88,17 +88,20 @@ class DetectYolo:
                 text = text.upper()
                 utils.write_text(frame_b, text, d_x, d_y)
 
-
-        
         foreground_a = cv2.bitwise_and(frame,frame, mask=frame_mask)
-        
-    
-        #cv2.imshow ("YOLO", foreground_a)
+        foreground_b = cv2.bitwise_and(frame_b,frame_b, mask=frame_mask)
+      
+        #combined_fg = cv2.bitwise_and(foreground_a, foreground_b)
+        combined_fg= cv2.addWeighted(foreground_b, 0.5, foreground_a, 0.5,0)
+
+        #cv2.imshow("fgb", combined_fg)
         frame_mask_inv = cv2.bitwise_not(frame_mask)
+
         # blend frame with foreground a missing
         modified_frame_b = cv2.bitwise_and(frame_b, frame_b, mask=frame_mask_inv)
-
-        merged_frame = cv2.add(modified_frame_b, foreground_a)
+        
+       
+        merged_frame = cv2.add(modified_frame_b, combined_fg)
 
           # draw mask on blend frame
         cv2.polylines(merged_frame, [g.raw_poly_mask], True, (0,0,255), thickness=1)
