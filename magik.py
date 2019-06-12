@@ -79,8 +79,10 @@ def process_timeline():
             utils.dim_print ('downloading {}'.format(url_download))
             try:
                 urllib.request.urlretrieve(url_download, in_file)
-            except Exception as e:
+            except IOError as e:
                 utils.fail_print('ERROR:{}'.format(e))
+            except: #handle other exceptions such as attribute errors
+                utils.fail_print ("Unexpected error:"+ sys.exc_info()[0])
         
         g.out_file = 'analyzed-'+event['Event']['Id']+'.mp4'
        
@@ -88,12 +90,12 @@ def process_timeline():
         try:
             if g.args['blend']:
                 res = zmm_blend.blend_video(input_file = in_file, out_file = g.out_file, eid = event['Event']['Id'],mid = event['Event']['MonitorId'], starttime=event['Event']['StartTime'], delay=delay )
-                delay = delay + 1
+                delay = delay + 2
             else:
                 res = zmm_search.search_video(input_file = in_file, out_file = g.out_file, eid = event['Event']['Id'],mid = event['Event']['MonitorId'] )
             if not g.args['all'] and res:
                 break
-        except Exception as e:
+        except IOError as e:
             utils.fail_print('ERROR:{}'.format(e))
 
         if g.args['download']:
