@@ -30,11 +30,8 @@ def blend_init():
 def blend_video(input_file=None, out_file=None, eid = None, mid = None, starttime=None, delay=0):
     global det
     print ('Blending: {}'.format(input_file))
-
-    first_frame = True
     
     vid = cv2.VideoCapture(input_file)
-    #print (vid)
     if not vid.isOpened(): 
         raise ValueError('Error reading video {}'.format(input_file))
 
@@ -69,74 +66,99 @@ def blend_video(input_file=None, out_file=None, eid = None, mid = None, starttim
     else:
         fps_skip = max(1,int(vid.get(cv2.CAP_PROP_FPS)/2))
 
-    total_frames =  int(vid.get(cv2.CAP_PROP_FRAME_COUNT)) 
-    if vid_blend:
-        total_frames = max(total_frames, int(vid_blend.get(cv2.CAP_PROP_FRAME_COUNT)) )
-        utils.dim_print ('frames in eid: {} vs blend: {}'.format( int(vid.get(cv2.CAP_PROP_FRAME_COUNT)), int(vid_blend.get(cv2.CAP_PROP_FRAME_COUNT))))
 
-    utils.dim_print ('process {} total frames'.format(total_frames))
+    total_frames_vid =  int(vid.get(cv2.CAP_PROP_FRAME_COUNT)) 
+    total_frames_vid_blend = 0
+
+    if vid_blend:
+        total_frames_vid_blend =int(vid_blend.get(cv2.CAP_PROP_FRAME_COUNT)) 
+        utils.dim_print ('frames in new video: {} vs blend: {}'.format( total_frames_vid, total_frames_vid_blend))
+
     start_time = time.time()
     utils.dim_print ('fps={}, skipping {} frames'.format(orig_fps, fps_skip))
+    utils.dim_print ('delay for new video is {}s'.format(delay))
+
+    bar_new_video = tqdm(total=total_frames_vid, desc='New video')
+    bar_blend_video = tqdm (total=total_frames_vid_blend, desc='Blend')
+
+    
+    # first wait for delay seconds
+    # will only come in if blend video exists, as in first iter it is 0
+    if delay:
+        frame_cnt = 0
+        bar_new_video.set_description ('waiting for {}s'.format(delay))
+        prev_good_frame_b = None
+        while True:
+            if vid_blend is None:
+                frame_b = prev_good_frame_b
+            else:
+                succ_b, frame_b = vid_blend.read()
+                if not  succ_b: 
+                    vid_blend = None
+                else:
+                    prev_good_frame_b = frame_b
+            frame_cnt = frame_cnt + 1
+            bar_blend_video.update(1)
+            outf.write(frame_b)
+            if (delay * orig_fps < frame_cnt):
+           # if (frame_cnt/orig_fps > delay):
+                #utils.dim_print('wait over')
+              #  print ('DELAY={} ORIGFPS={} FRAMECNT={}'.format(delay, orig_fps, frame_cnt))
+                break
+              
+    # now read new video along with blend
+    bar_new_video.set_description ('New video')
     frame_cnt = 0
-
-    bar = tqdm(total=total_frames)
-
-   
-    #fgbg = cv2.createBackgroundSubtractorMOG2(history=5, varThreshold=50, detectShadows=True)
-    #fgbg = cv2.createBackgroundSubtractorMOG2()
     while True:
-
-        if (orig_fps * frame_cnt >= delay):
-            succ, frame = vid.read()
-        else:
-            succ = False
-            frame = None
-            utils.dim_print ('waiting for {}s'.format(delay))
+        succ, frame = vid.read()
         
-        succ_b = False
         frame_cnt = frame_cnt + 1
-        bar.update(1) 
-        if frame_cnt % fps_skip: 
-            # skip frames based on our skip frames count. We don't really need to process every frame
-            continue
-        # skip fps only applies to input image. Blend video will always have fps skip applied
+        bar_new_video.update(1)
 
+        if frame_cnt % fps_skip:
+            continue
+      
+        succ_b = False
         if succ and g.args['resize']:
             resize = g.args['resize']
             rh, rw, rl = frame.shape
             frame = cv2.resize(frame, (int(rw*resize), int(rh*resize)))
 
-       
-        if vid_blend: succ_b, frame_b = vid_blend.read()
-        #print (succ, succ_b)
-        if not succ and not succ_b:
-            utils.dim_print ('both videos are done')
-            break
-       
-        # now populate frame and frame_b correctly:
-        analyze = True
+        if vid_blend: 
+            succ_b, frame_b = vid_blend.read()
+            if succ_b:
+                bar_blend_video.update(1)
+            else:
+                vid_blend = None
+            # frame_b is always resized
 
-        if (succ and not succ_b):
+        if not succ and not succ_b:
+                utils.dim_print ('both videos are done')
+                break
+       
+        elif succ and succ_b:
+            analyze = True
+            relevant = False # may change on analysis
+
+        elif succ and not succ_b:
            # print ('blend over')
             frame_b = frame.copy()
+            analyze = True
+            relevant = False # may change on analysis
 
-        elif (not succ and succ_b):
-            #print ('new video over')
-            frame = frame_b.copy()
-            merged_frame = frame
-            foreground_a = frame
-            #frame_mask = frame
-            #print (frame.shape)
-            h,w,_ = frame.shape
-            frame_mask = np.ones((h,w),dtype=np.uint8)
-           # print (frame_mask.shape)
-            # if we are only left with past blends, just write it
+
+        elif not succ and succ_b:
+            merged_frame = frame_b
+            frame = frame_b
+            boxed_frame = np.zeros_like(frame_b)
+            frame_mask = np.zeros_like(frame_b)
+            foreground_a = np.zeros_like(frame_b)
             analyze = False
             relevant = True
-
+           
         
-
         if analyze:
+            # only if both blend and new were read
             if g.args['balanceintensity']:
                 intensity = np.mean(frame)
                 intensity_b = np.mean(frame_b)
@@ -148,15 +170,7 @@ def blend_video(input_file=None, out_file=None, eid = None, mid = None, starttim
                     frame = utils.hist_match(frame, frame_b)     
                
             merged_frame, foreground_a, frame_mask, relevant, boxed_frame = det.detect(frame, frame_b, frame_cnt, orig_fps, starttime)
-            #print (frame_mask.shape)
-            
-            # don't need this as shadows are off
-            # remove grey areas
-            #indices = frame_mask > 100
-            #frame_mask[indices] = 255
-            # get only foreground images from the new frame
-            
-
+      
         if g.args['display']:
                 x = 320
                 y = 240
@@ -174,19 +188,20 @@ def blend_video(input_file=None, out_file=None, eid = None, mid = None, starttim
                 #cv2.imshow('frame_mask',cv2.resize(frame_mask, (640,480)))
 
                 #cv2.imshow('frame_mask',frame_mask)
-                if g.args['interactive']:
-                    key = cv2.waitKey(0)
-                  
-                else:
-                    key = cv2.waitKey(1)
-                if key& 0xFF == ord('q'):
-                    exit(1)
-                if key& 0xFF == ord('c'):
-                    g.args['interactive']=False
                 
+                    
 
-        # we write if either new frame has foreground, or there is a blend to write
-        if relevant or succ_b:
+        if g.args['interactive']:
+            key = cv2.waitKey(0)
+        
+        else:
+            key = cv2.waitKey(1)
+        if key& 0xFF == ord('q'):
+            exit(1)
+        if key& 0xFF == ord('c'):
+            g.args['interactive']=False
+
+        if relevant:
             outf.write(merged_frame)
 
         else:
@@ -195,7 +210,8 @@ def blend_video(input_file=None, out_file=None, eid = None, mid = None, starttim
         
    
 
-    bar.close()
+    bar_blend_video.close()
+    bar_new_video.close()
     vid.release()
     outf.release()
     if vid_blend: vid_blend.release() 
