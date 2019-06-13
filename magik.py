@@ -145,7 +145,7 @@ ap.add_argument("--minblendarea",help = "minimum area in pixels to accept as obj
 ap.add_argument("--fontscale",help = "Size of font scale (1, 1.5 etc). Only applicable if using--blend", type=float, default=1)
 
 
-ap.add_argument("--download", action='store_true' ,help = "Downloads remote videos first before analysis. Seems some openCV installations have problems with remote downloads")
+ap.add_argument("--download", action='store_true' ,help = "Downloads remote videos first before analysis. Seems some openCV installations have problems with remote downloads", default=True)
 
 ap.add_argument("--display", action='store_true' ,help = "displays processed frames. Only applicable if using --blend")
 ap.add_argument("--objectonly", action='store_true' ,help = "Only process events where objects are detected. Only applicable if using --blend")

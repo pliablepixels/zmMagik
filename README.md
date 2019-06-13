@@ -28,6 +28,7 @@ Installation
 # needs python3, so you may need to use pip3 if you have 2.x as well
 git clone https://github.com/pliablepixels/zmMagik
 cd zmMagik
+# you may need to do sudo -H pip instead for below, if you get permission errors
 pip install -r requirements.txt
 ```
 
