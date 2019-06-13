@@ -4,7 +4,6 @@ config.ini
 *.jpg
 *.jpeg
 *.png
-*.gif
 *.json
 **/.DS_Store
 images/*
