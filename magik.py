@@ -49,9 +49,12 @@ def process_timeline():
         url = url+'/Notes REGEXP:detected:'
     if g.args['alarmonly']:
         url = url+'/AlarmFrames >=:1'
+    if g.args['blend'] and len(g.mon_list) > 1:
+        utils.bold_print('You have chosen to blend events from multiple monitors. Results may be poor. Blending should typically be done on a fixed view (single monitor)')
     for mon in g.mon_list:
      #   print (mon)
         url = url+'/MonitorId =:'+str(mon)
+
     url =url+'.json?sort=StartTime&direction=asc&username='+g.args['username']+'&password='+g.args['password']
     print('Getting list of events using: {}'.format(url))
     resp = requests.get(url)
