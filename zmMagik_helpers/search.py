@@ -104,7 +104,7 @@ def search_video(input_file=None, out_file=None, eid = None, mid = None):
                 out.write(frame)
             frame_found = True
             if not g.args['all']: break
-        if maxv < g.MIN_ACCURACY and not g.args['present']:
+        if maxv < g.args['threshold'] and not g.args['present']:
             # if we want to record frames where the object is absent
             set_frames['frames'].append ({ 'time': int(frame_cnt/orig_fps), 'frame':frame_cnt, 'location':None, 'accuracy':'{:.2%}'.format(maxv)})
             #missing.append('{}s, Frame: {} (accuracy:{:.2%})'.format(int(frame_cnt/orig_fps),frame_cnt, maxv))
