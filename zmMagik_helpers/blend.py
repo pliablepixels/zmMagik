@@ -8,7 +8,13 @@ import numpy as np
 import zmMagik_helpers.utils as utils
 import zmMagik_helpers.globals as g
 import zmMagik_helpers.log as log
+from datetime import datetime
+
 det = None
+blend_filename = 'blended-'
+if len(g.mon_list) == 1:
+    blend_filename = blend_filename +'mon-'+ g.mon_list[0] + '-'
+blend_filename = blend_filename+datetime.now().strftime("%m_%d_%Y_%H_%M_%S")+'.mp4'
 
 def blend_init():
     global det
@@ -49,8 +55,8 @@ def blend_video(input_file=None, out_file=None, eid = None, mid = None, starttim
         width = int(width * resize)
         height = int(height * resize)
 
-    if os.path.isfile('blended.mp4'):
-        vid_blend = cv2.VideoCapture('blended.mp4')
+    if os.path.isfile(blend_filename):
+        vid_blend = cv2.VideoCapture(blend_filename)
         #utils.dim_print('Video blend {}'.format(vid_blend))
     else:
         vid_blend = None
@@ -58,7 +64,7 @@ def blend_video(input_file=None, out_file=None, eid = None, mid = None, starttim
     
 
     fourcc = cv2.VideoWriter_fourcc(*'mp4v')
-    outf = cv2.VideoWriter('new-blended.mp4', fourcc, orig_fps, (width,height)) 
+    outf = cv2.VideoWriter('new-blended-temp.mp4', fourcc, orig_fps, (width,height)) 
     utils.bold_print('Output video will be {}fps'.format(orig_fps))
 
     if g.args['skipframes']:
@@ -139,23 +145,25 @@ def blend_video(input_file=None, out_file=None, eid = None, mid = None, starttim
         elif succ and succ_b:
             analyze = True
             relevant = False # may change on analysis
+            #print ("succ and succ_b")
 
         elif succ and not succ_b:
            # print ('blend over')
             frame_b = frame.copy()
             analyze = True
             relevant = False # may change on analysis
-
+            #print ("succ and not succ_b")
 
         elif not succ and succ_b:
             merged_frame = frame_b
             frame = frame_b
             boxed_frame = np.zeros_like(frame_b)
-            frame_mask = np.zeros_like(frame_b)
+            txh,txw,_ = frame_b.shape
+            frame_mask= np.zeros((txh, txw),dtype=np.uint8)
             foreground_a = np.zeros_like(frame_b)
             analyze = False
             relevant = True
-           
+            #print ("not succ and succ_b")
         
         if analyze:
             # only if both blend and new were read
@@ -217,8 +225,9 @@ def blend_video(input_file=None, out_file=None, eid = None, mid = None, starttim
     if vid_blend: vid_blend.release() 
     #input("Press Enter to continue...")
     try:
-        os.remove('blended.mp4')
+        os.remove(blended_filename)
     except:
        pass
-    os.rename ('new-blended.mp4', 'blended.mp4')
+    os.rename ('new-blended-temp.mp4', blend_filename)
+    utils.success_print('Blended file updated in {}'.format(blend_filename))
     return False
