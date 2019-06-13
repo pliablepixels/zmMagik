@@ -9,6 +9,8 @@ As of today, it lets you:
 
 * Create a blend of multiple events to quickly see how the day went. Swoosh!
 
+<img src='https://github.com/pliablepixels/zmMagik/blob/master/sample/1.gif' />
+
 Why
 ----
 * I came home one day to see my trash can cover went missing. I thought it would be fun to write a tool that could search through my events to let me know when it went missing. Yep, it started with trash talking
