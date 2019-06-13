@@ -54,7 +54,7 @@ python ./magik.py --monitors=11 --from "yesterday, 7am" --to "today, 10am" --ble
 * Search when an object (image) went missing:
 
 ```bash
-python ./magik.py --monitors=7 --from "today, 7am" --to "today, 7pm" --find "amazonpackage.jpg" -c config.ini
+python ./magik.py --monitors=7 --present=False --from "today, 7am" --to "today, 7pm" --find "amazonpackage.jpg" -c config.ini
 ```
 
 Note that `amazonpackage.jpg` needs to be the same dimensions/orientation as in the events it will look into. Best way to do this is to load up ZM, find the package, crop it and use it.

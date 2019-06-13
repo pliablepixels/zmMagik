@@ -139,24 +139,22 @@ ap.add_argument("--from", help = "arbitrary time range like '24 hours ago' or fo
 ap.add_argument("--to", help = "arbitrary time range like '2 hours ago' or formal dates")
 ap.add_argument("--monitors", help = "comma separated list of monitor IDs to search")
 ap.add_argument("--resize", help = "resize factor (0.5 will halve) for both matching template and video size", type=float)
-ap.add_argument("--dumpjson", action='store_true' ,help = "write analysis to JSON file")
-ap.add_argument("--blend", action='store_true' ,help = "overlay all videos in the time range. Only applicable if using --from --to")
+ap.add_argument("--dumpjson", nargs='?',default=False,const=True, type=utils.str2bool ,help = "write analysis to JSON file")
+ap.add_argument("--blend", nargs='?', const=True,default=False, type=utils.str2bool ,help = "overlay all videos in the time range. Only applicable if using --from --to")
 ap.add_argument("--minblendarea",help = "minimum area in pixels to accept as object of interest in forgeground extraction. Only applicable if using--blend", type=float, default=1500)
 ap.add_argument("--fontscale",help = "Size of font scale (1, 1.5 etc). Only applicable if using--blend", type=float, default=1)
 
 
-ap.add_argument("--download", action='store_true' ,help = "Downloads remote videos first before analysis. Seems some openCV installations have problems with remote downloads", default=True)
+ap.add_argument("--download", nargs='?',const=True,type=utils.str2bool, help = "Downloads remote videos first before analysis. Seems some openCV installations have problems with remote downloads", default=True)
 
-ap.add_argument("--display", action='store_true' ,help = "displays processed frames. Only applicable if using --blend")
-ap.add_argument("--objectonly", action='store_true' ,help = "Only process events where objects are detected. Only applicable if using --blend")
-ap.add_argument("--alarmonly", action='store_true' ,help = "Only process events which have at least 1 alarmed frame")
-ap.add_argument("--balanceintensity", action='store_true' ,help = "If enabled, will try and match frame intensities - the darker frame will be aligned to match the brighter one. May be useful for day to night transitions, or not :-p. Works with --blend")
+ap.add_argument("--display", nargs='?',const=True,default=False,type=utils.str2bool ,help = "displays processed frames. Only applicable if using --blend")
+ap.add_argument("--objectonly", nargs='?',const=True,default=False,type=utils.str2bool,help = "Only process events where objects are detected. Only applicable if using --blend")
+ap.add_argument("--alarmonly", nargs='?',const=True,default=False,type=utils.str2bool ,help = "Only process events which have at least 1 alarmed frame")
+ap.add_argument("--balanceintensity", nargs='?',const=True,default=False,type=utils.str2bool ,help = "If enabled, will try and match frame intensities - the darker frame will be aligned to match the brighter one. May be useful for day to night transitions, or not :-p. Works with --blend")
 
 
-ap.add_argument('--present', dest='present', action='store_true', help='look for frames where image in --match is present')
-ap.add_argument('--not-present', dest='present', action='store_false', help='look for frames where image in --match is NOT present')
-ap.add_argument('--no-present', dest='present', action='store_false', help='look for frames where image in --match is NOT present')
-ap.set_defaults(present=True)
+ap.add_argument('--present', nargs='?',default=True, const=True, type=utils.str2bool, help='look for frames where image in --match is present')
+
 g.args = vars(ap.parse_args())
 utils.process_config()
 if g.args['blend']: zmm_blend.blend_init()

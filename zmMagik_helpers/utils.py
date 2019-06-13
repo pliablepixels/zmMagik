@@ -9,6 +9,16 @@ from datetime import datetime, timedelta
 
 import zmMagik_helpers.globals as g
 
+#https://stackoverflow.com/a/43357954/1361529
+def str2bool(v):
+    if isinstance(v, bool):
+       return v
+    if v.lower() in ('yes', 'true', 't', 'y', '1'):
+        return True
+    elif v.lower() in ('no', 'false', 'f', 'n', '0'):
+        return False
+    else:
+        raise argparse.ArgumentTypeError('Boolean value expected.')
 
 def hist_match(source, template):
 #https://stackoverflow.com/questions/32655686/histogram-matching-of-two-images-in-python-2-x
