@@ -31,12 +31,12 @@ class DetectBackground:
 
     def detect(self,frame, frame_b, frame_cnt, orig_fps, starttime):
        
-        frame_hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
-        frame_hsv[:,:,0] = 0 # see if removing intensity helps
-       # gray = cv2.cvtColor(frame_hsv, cv2.COLOR_BGR2GRAY)
+        #frame_hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
+        #frame_hsv[:,:,0] = 0 # see if removing intensity helps
+        gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 
         # create initial background subtraction
-        frame_mask = self.fgbg.apply(frame_hsv)
+        frame_mask = self.fgbg.apply(gray)
         # remove noise
         frame_mask = cv2.morphologyEx(frame_mask, cv2.MORPH_OPEN, self.kernel_clean)
         # blur to merge nearby masks, hopefully
