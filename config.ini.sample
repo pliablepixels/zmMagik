@@ -22,8 +22,9 @@ resize = 0.5
 balanceintensity=False
 
 # if you select yolo, make sure you have the config/weight/label files (yolo or tinyyolo files)
+detection_type=mixed
 #detection_type=yolo_extraction
-detection_type=background_extraction
+#detection_type=background_extraction
 
 # you need these if you use yolo for detection
 #config_file=/path/yolov3.cfg
