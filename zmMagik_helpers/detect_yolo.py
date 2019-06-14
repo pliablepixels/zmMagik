@@ -90,8 +90,8 @@ class DetectYolo:
                     #from_time = to_time - datetime.timedelta(hours = 1)
                     # print (st)
                     dt = st + timedelta(seconds=int(frame_cnt/orig_fps))
-                    obj_info['time'] = dt
                     text = dt.strftime('%b %d, %I:%M%p')
+                    obj_info['time'] = text
                 text = text.upper()
                 utils.write_text(frame_b, text, d_x, d_y)
                 set_frames['frames'].append (obj_info)
