@@ -65,16 +65,19 @@ Note that `amazonpackage.jpg` needs to be the same dimensions/orientation as in 
 FAQ
 -----
 
+* What is "mixed" background extraction?
+  * This is the default mode. It uses the very fast openCV background subtraction to detect motion, and then uses YOLO to refine the search to see if it really is an object worth marking. Use this mode by default, unless you need more speed, in which case, use "backround_extraction"
+
 * Using "background_extraction" mode isn't that great
-  * Yeah, its 'pre,pre,pre alpha'
-  * Foreground and background are measured based on what is moving (foreground) and what is not (background)
-  * Use masks to restrict area
-  * Use `--display` to see what is going on, look at frame masks and output
-  * Try changing the learning rate of the background extractor
-  * See if using a different Background extractor for `fgbg` in `globals.py` helps you (read [this](https://docs.opencv.org/3.3.0/d2/d55/group__bgsegm.html#gae561c9701970d0e6b35ec12bae149814))
-  * Fiddle with kernel_clean and kernel_fill in `globals.py`
-* Using "Yolo" extraction mode is great, but it overlays complete rectangles
-  * Yeah, unlike "background_extraction" yolo doesn't report a mask of the object shape, only a bounding box
+  * Yes, that's why you should use "mixed"
+  * Some tips:
+    * Use masks to restrict area
+    * Use `--display` to see what is going on, look at frame masks and output
+    * Try changing the learning rate of the background extractor
+    * See if using a different Background extractor for `fgbg` in `globals.py` helps you (read [this](https://docs.opencv.org/3.3.0/d2/d55/group__bgsegm.html#gae561c9701970d0e6b35ec12bae149814))
+    * Fiddle with kernel_clean and kernel_fill in `globals.py`
+* Using "Yolo" or "mixed" extraction mode is great, but it overlays complete rectangles
+  * Yes, unlike "background_extraction" yolo doesn't report a mask of the object shape, only a bounding box
   * I'll add masked R-CNN too, you can try that (will be slower than Yolo)
   * Maybe you can suggest a smarter way to overlay the rectangle using some fancy operators that will act like its blending?
 

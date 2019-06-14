@@ -29,6 +29,8 @@ class DetectBackground:
         #self.fgbg=cv2.createBackgroundSubtractorKNN(detectShadows=False, history=self.history, dist2Threshold = self.dist_threshold)
         #fgbg=cv2.bgsegm.createBackgroundSubtractorLSBP()
 
+        utils.success_print('Background subtraction initialized')
+
     def detect(self,frame, frame_b, frame_cnt, orig_fps, starttime):
        
         #frame_hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)

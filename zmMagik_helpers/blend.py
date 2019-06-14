@@ -11,27 +11,39 @@ import zmMagik_helpers.log as log
 from datetime import datetime
 
 det = None
+det2 = None
 blend_filename = 'blended-'
 if len(g.mon_list) == 1:
     blend_filename = blend_filename +'mon-'+ g.mon_list[0] + '-'
 blend_filename = blend_filename+datetime.now().strftime("%m_%d_%Y_%H_%M_%S")+'.mp4'
 
 def blend_init():
-    global det
+    global det, det2
     #print (g.args['detection_type'])
     if g.args['detection_type'] == 'background_extraction':
-        import zmMagik_helpers.detect_background as det
-        det = det.DetectBackground(min_accuracy = g.args['threshold'], min_blend_area=g.args['minblendarea'])
+        import zmMagik_helpers.detect_background as FgBg
+        det = FgBg.DetectBackground(min_accuracy = g.args['threshold'], min_blend_area=g.args['minblendarea'])
 
     elif g.args['detection_type'] == 'yolo_extraction':
-        import zmMagik_helpers.detect_yolo as det
-        det = det.DetectYolo (configPath = g.args['config_file'],
+        import zmMagik_helpers.detect_yolo as Yolo
+        det = Yolo.DetectYolo (configPath = g.args['config_file'],
                               weightsPath = g.args['weights_file'],
                               labelsPath =  g.args['labels_file'] )
     
 
+    elif g.args['detection_type'] == 'mixed':
+        import zmMagik_helpers.detect_background as FgBg
+        import zmMagik_helpers.detect_yolo as Yolo
+        det =  FgBg.DetectBackground(min_accuracy = g.args['threshold'], min_blend_area=g.args['minblendarea'])
+        det2 = Yolo.DetectYolo (configPath = g.args['config_file'],
+                              weightsPath = g.args['weights_file'],
+                              labelsPath =  g.args['labels_file'] )
+ 
+
     else:
         raise ValueError ('Detection type {} is not known'.format(g.args['detection_type']))
+
+    utils.bold_print('Detection mode is: {}'.format(g.args['detection_type']))
 
 def blend_video(input_file=None, out_file=None, eid = None, mid = None, starttime=None, delay=0):
     global det
@@ -178,6 +190,11 @@ def blend_video(input_file=None, out_file=None, eid = None, mid = None, starttim
                     frame = utils.hist_match(frame, frame_b)     
                
             merged_frame, foreground_a, frame_mask, relevant, boxed_frame = det.detect(frame, frame_b, frame_cnt, orig_fps, starttime)
+            if relevant and g.args['detection_type'] == 'mixed':
+                bar_new_video.set_description('YOLO running')
+                #utils.dim_print('Adding YOLO, found relevance in backgroud motion')
+                merged_frame, foreground_a, frame_mask, relevant, boxed_frame = det2.detect(frame, frame_b, frame_cnt, orig_fps, starttime)  
+                bar_new_video.set_description('New video')        
       
         if g.args['display']:
                 x = 320

@@ -20,6 +20,7 @@ class DetectYolo:
         self.colors = np.random.randint(
             0, 255, size=(len(self.labels), 3), dtype="uint8")
         self.kernel_fill = np.ones((kernel_fill,kernel_fill),np.uint8)
+        utils.success_print('YOLO initialized')
 
     def detect(self, frame, frame_b, frame_cnt, orig_fps, starttime):
         
