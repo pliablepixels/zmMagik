@@ -7,6 +7,8 @@ Features
 As of today, it lets you:
 * Find an image fragment inside multiple events. For example, someone stole your amazon package. Crop a picture of an event with that package and then ask zmMagik to search for events where this package went missing. Whoosh!
 
+<img src='https://github.com/pliablepixels/zmMagik/blob/master/sample/2.jpg' />
+
 * Create a blend of multiple events to quickly see how the day went. Swoosh!
 
 <img src='https://github.com/pliablepixels/zmMagik/blob/master/sample/1.gif' />
