@@ -31,7 +31,7 @@ class DetectBackground:
 
         utils.success_print('Background subtraction initialized')
 
-    def detect(self,frame, frame_b, frame_cnt, orig_fps, starttime):
+    def detect(self,frame, frame_b, frame_cnt, orig_fps, starttime, set_frames):
        
         #frame_hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
         #frame_hsv[:,:,0] = 0 # see if removing intensity helps
@@ -85,6 +85,13 @@ class DetectBackground:
         boxed_frame = frame.copy()
         for rect in rects:
             x,y,w,h = rect
+            obj_info = {
+                'name': 'object',
+                'time':int(frame_cnt/orig_fps),
+                'frame': frame_cnt,
+                'location': ((x,y),(x+w, y+h)),
+                'confidence': None
+            }
             # draw blue boxes after all intelligence is done
             cv2.rectangle(boxed_frame, (x, y), (x+w, y+h), (255,0,0), 2)
             text = '{}s, Frame: {}'.format(int(frame_cnt/orig_fps), frame_cnt)
@@ -93,9 +100,12 @@ class DetectBackground:
                 #from_time = to_time - datetime.timedelta(hours = 1)
                 # print (st)
                 dt = st + timedelta(seconds=int(frame_cnt/orig_fps))
+                obj_info['time'] = dt
                 text = dt.strftime('%b %d, %I:%M%p')
             text = text.upper()
             utils.write_text(merged_frame, text, x,y)
-
+            if g.args['detection_type'] != 'mixed':
+                # if its mixed, Yolo will write this
+                set_frames['frames'].append (obj_info)
         
         return merged_frame, foreground_a, frame_mask, relevant, boxed_frame

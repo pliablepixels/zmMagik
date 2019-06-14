@@ -62,7 +62,7 @@ def process_timeline():
     events = resp.json()['events']
 
     
-    start_time = time.time()
+    
     cnt = 0
     delay = 0
     for event in events:
@@ -106,8 +106,7 @@ def process_timeline():
                 os.remove(in_file)
             except:
                 pass
-    end_time = time.time()
-    print ('\nTotal time: {:.2}s'.format(end_time-start_time))
+    
 
 
 
@@ -163,18 +162,20 @@ utils.dim_print('-----| Arguments to be used:')
 for k,v in g.args.items():
     utils.dim_print ('{}={}'.format(k,v))
 print('\n')
+
+start_time = time.time()
 if g.args['from'] or g.args['to']:
     # if its a time range, ignore event/input
     process_timeline()
     
 else:
     if g.args['eventid']:
+
         # we need to construct the url
         g.args['input'] = g.args['portal']+'/index.php?view=view_video&eid='+g.args['eventid']+'&username='+g.args['username']+'&password='+g.args['password']
         g.out_file = g.args['eventid']+'-analyzed.mp4'
 
     if (g.args['input'].lower().startswith(('http:', 'https:'))):
-        dim_print ('Downloading video from url: {}'.format(g.args['input']))
         parsed = urlparse.urlparse(g.args['input'])
         try:
             eid = urlparse.parse_qs(parsed.query)['eid'][0]
@@ -182,14 +183,21 @@ else:
             g.args['eventid'] = eid
         except KeyError:
             fname = 'temp-analysis.mp4'
+        if g.args['download']:
+            utils.dim_print ('Downloading video from url: {}'.format(g.args['input']))
+            urllib.request.urlretrieve(g.args['input'], fname)
+            g.args['input'] = fname
+            remove_downloaded = True
+        g.out_file = 'analyzed-'+fname
+       
+    if g.args['find']:
+        res = zmm_search.search_video(input_file=g.args['input'], out_file=g.out_file, eid=g.args['eventid'], mid=None, starttime=None, delay=0)
+    elif g.args['blend']:
+        res = zmm_blend.blend_video(input_file=g.args['input'], out_file=g.out_file, eid=g.args['eventid'], mid=None, starttime=None, delay=0)
 
-        urllib.request.urlretrieve(g.args['input'], fname)
-        g.args['input'] = fname
-        g.out_file = 'analyzed-'+g.args['input']
-        remove_downloaded = True
-    
-    zmm_analyze.analyze_video(input_file=g.args['input'], out_file=g.out_file, eid=g.args['eventid'])
 
+end_time = time.time()
+print ('\nTotal time: {}s'.format(round(end_time-start_time,2)))
 if g.args['dumpjson']:
     jf = 'analyzed-'+datetime.now().strftime("%m_%d_%Y_%H_%M_%S")+'.json'
     print ('Writing output to {}'.format(jf))

@@ -46,7 +46,16 @@ def blend_init():
     utils.bold_print('Detection mode is: {}'.format(g.args['detection_type']))
 
 def blend_video(input_file=None, out_file=None, eid = None, mid = None, starttime=None, delay=0):
-    global det
+
+    global det, det2
+
+    set_frames = {
+        'eventid': eid,
+        'monitorid': mid,
+        'type': 'object',
+        'frames':[]
+        }
+
     print ('Blending: {}'.format(input_file))
     
     vid = cv2.VideoCapture(input_file)
@@ -189,11 +198,11 @@ def blend_video(input_file=None, out_file=None, eid = None, mid = None, starttim
                     # blend is brighter
                     frame = utils.hist_match(frame, frame_b)     
                
-            merged_frame, foreground_a, frame_mask, relevant, boxed_frame = det.detect(frame, frame_b, frame_cnt, orig_fps, starttime)
+            merged_frame, foreground_a, frame_mask, relevant, boxed_frame = det.detect(frame, frame_b, frame_cnt, orig_fps, starttime, set_frames)
             if relevant and g.args['detection_type'] == 'mixed':
                 bar_new_video.set_description('YOLO running')
                 #utils.dim_print('Adding YOLO, found relevance in backgroud motion')
-                merged_frame, foreground_a, frame_mask, relevant, boxed_frame = det2.detect(frame, frame_b, frame_cnt, orig_fps, starttime)  
+                merged_frame, foreground_a, frame_mask, relevant, boxed_frame = det2.detect(frame, frame_b, frame_cnt, orig_fps, starttime, set_frames)  
                 bar_new_video.set_description('New video')        
       
         if g.args['display']:
@@ -247,4 +256,7 @@ def blend_video(input_file=None, out_file=None, eid = None, mid = None, starttim
        pass
     os.rename ('new-blended-temp.mp4', blend_filename)
     utils.success_print('Blended file updated in {}'.format(blend_filename))
+
+    g.json_out.append(set_frames)
+
     return False

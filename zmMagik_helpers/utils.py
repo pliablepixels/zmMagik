@@ -100,9 +100,9 @@ def process_config():
 
         g.args['from']= from_time.strftime('%Y-%m-%d %H:%M:%S')
         g.args['to'] = to_time.strftime('%Y-%m-%d %H:%M:%S')
-    if (to_time <= from_time):
-        fail_print ('ERROR: Time range from:{} to:{} is invalid '.format(from_time, to_time))
-        exit(1)
+        if (to_time <= from_time):
+            fail_print ('ERROR: Time range from:{} to:{} is invalid '.format(from_time, to_time))
+            exit(1)
 
     if g.args['monitors']:
         g.mon_list = [int(item) for item in g.args['monitors'].split(',')]
