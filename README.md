@@ -12,7 +12,7 @@ As of today, it lets you:
 
 * Annotate recorded ZoneMinder videos. Ohmgooosh!
 
-<img src='https://media.giphy.com/media/QrcqTeahWNjKWItnX1/giphy.gif' width=400px>
+<img src='https://github.com/pliablepixels/zmMagik/blob/master/sample/3.gif' width=400px>
 
 * Find an image fragment inside multiple events. For example, someone stole your amazon package. Crop a picture of an event with that package and then ask zmMagik to search for events where this package went missing. Whoosh!
 
