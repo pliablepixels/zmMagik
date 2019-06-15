@@ -5,15 +5,18 @@ zmMagik will be a list of growing foo-magic things you can do with video images 
 Features
 ---------
 As of today, it lets you:
-* Find an image fragment inside multiple events. For example, someone stole your amazon package. Crop a picture of an event with that package and then ask zmMagik to search for events where this package went missing. Whoosh!
-
-<img src='https://github.com/pliablepixels/zmMagik/blob/master/sample/2.jpg' width=400px />
 
 * Create a blend of multiple events to quickly see how the day went. Swoosh!
 
 <img src='https://github.com/pliablepixels/zmMagik/blob/master/sample/1.gif' width=400px />
 
 * Annotate recorded ZoneMinder videos. Ohmgooosh!
+
+<img src='https://media.giphy.com/media/QrcqTeahWNjKWItnX1/giphy.gif' width=400px>
+
+* Find an image fragment inside multiple events. For example, someone stole your amazon package. Crop a picture of an event with that package and then ask zmMagik to search for events where this package went missing. Whoosh!
+
+<img src='https://github.com/pliablepixels/zmMagik/blob/master/sample/2.jpg' width=400px />
 
 Why
 ----
