@@ -6,19 +6,19 @@ Features
 ---------
 As of today, it lets you:
 
-* Create a **blend** of multiple events to quickly see how the day went. Swoosh!
+* **Blend**  multiple events to quickly see how the day went. Imagine compressing 24 hours of video into 1 minute with object overlays. Gadzooks!
 
 <sub><sup>this video is blended from 2 days worth of video. Generated using `python ./magik.py -c config.ini  --monitors 11 --blend --display --download=False --from "2 days ago"`</sup></sub>
 
 <img src='https://github.com/pliablepixels/zmMagik/blob/master/sample/1.gif' width=400px />
 
-* **Annotate** recorded ZoneMinder videos. Ohmgooosh!
+* **Annotate** recorded ZoneMinder videos. Holy Batman!
 
 <sub><sup>generated using `python ./magik.py -c config.ini --eventid 44063 --dumpjson --annotate --display --download=False --onlyrelevant=False --skipframes=1`</sup></sub>
 
 <img src='https://github.com/pliablepixels/zmMagik/blob/master/sample/3.gif' width=400px>
 
-* **Find** an image fragment inside multiple events. For example, someone stole your amazon package. Crop a picture of an event with that package and then ask zmMagik to search for events where this package went missing. Whoosh!
+* **Find** an image fragment inside multiple events. For example, someone stole your amazon package. Crop a picture of an event with that package and then ask zmMagik to search for events where this package went missing. Great Krypton!
 
 <sub><sup>generated using `python ./magik.py -c config.ini --find trash.jpg --dumpjson  --display --download=False --from "8am" --to "3pm" --monitors 11`</sup></sub>
 
