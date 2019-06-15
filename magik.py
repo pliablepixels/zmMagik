@@ -31,6 +31,7 @@ if sys.version_info < (3, 0):
 import zmMagik_helpers.utils as utils
 import zmMagik_helpers.globals as g
 import zmMagik_helpers.blend as zmm_blend
+import zmMagik_helpers.annotate as zmm_annotate
 import zmMagik_helpers.search as zmm_search
 import zmMagik_helpers.log as log
 
@@ -94,8 +95,13 @@ def process_timeline():
             if g.args['blend']:
                 res = zmm_blend.blend_video(input_file = in_file, out_file = g.out_file, eid = event['Event']['Id'],mid = event['Event']['MonitorId'], starttime=event['Event']['StartTime'], delay=delay )
                 delay = delay + 2
-            else:
+            elif g.args['annotate']:
+                res = zmm_annotate.annotate_video(input_file = in_file, out_file = g.out_file, eid = event['Event']['Id'],mid = event['Event']['MonitorId'], starttime=event['Event']['StartTime'] )
+                
+            elif g.args['find']:
                 res = zmm_search.search_video(input_file = in_file, out_file = g.out_file, eid = event['Event']['Id'],mid = event['Event']['MonitorId'] )
+            else:
+                raise ValueError('Unknown mode?')
             if not g.args['all'] and res:
                 break
         except IOError as e:
@@ -122,7 +128,7 @@ ap.add_argument("--skipframes", help="how many frames to skip", type=int)
 ap.add_argument("--fps", help="fps of video, to get timing correct", type=int)
 ap.add_argument("--threshold", help="a number between 0 to 1 on accuracy threshold. 0.7 or above required", type=float, default=0.7, choices=(0.7, 1.0))
 ap.add_argument("-a", "--all", action='store_true', help="process all frames, don't stop at first find")
-ap.add_argument("-w", "--write", action='store_true', help="create video with matched frames")
+ap.add_argument("-w", "--write", action='store_true', help="create video with matched frames. Only applicable for --find")
 ap.add_argument("--interactive", action='store_true', help="move to next frame after keypress. Press 'c' to remove interactive")
 
 ap.add_argument("--eventid",  help="Event id")
@@ -139,7 +145,13 @@ ap.add_argument("--to", help = "arbitrary time range like '2 hours ago' or forma
 ap.add_argument("--monitors", help = "comma separated list of monitor IDs to search")
 ap.add_argument("--resize", help = "resize factor (0.5 will halve) for both matching template and video size", type=float)
 ap.add_argument("--dumpjson", nargs='?',default=False,const=True, type=utils.str2bool ,help = "write analysis to JSON file")
-ap.add_argument("--blend", nargs='?', const=True,default=False, type=utils.str2bool ,help = "overlay all videos in the time range. Only applicable if using --from --to")
+
+ap.add_argument("--annotate", nargs='?', const=True,default=False, type=utils.str2bool ,help = "annotates all videos in the time range. Only applicable if using --from --to or --eventid")
+
+ap.add_argument("--blend", nargs='?', const=True,default=False, type=utils.str2bool ,help = "overlay all videos in the time range. Only applicable if using --from --to or --eventid")
+
+ap.add_argument("--onlyrelevant", nargs='?', const=True,default=True, type=utils.str2bool ,help = "Only write frames that have detections")
+
 ap.add_argument("--minblendarea",help = "minimum area in pixels to accept as object of interest in forgeground extraction. Only applicable if using--blend", type=float, default=1500)
 ap.add_argument("--fontscale",help = "Size of font scale (1, 1.5 etc). Only applicable if using--blend", type=float, default=1)
 
@@ -156,7 +168,9 @@ ap.add_argument('--present', nargs='?',default=True, const=True, type=utils.str2
 
 g.args = vars(ap.parse_args())
 utils.process_config()
+
 if g.args['blend']: zmm_blend.blend_init()
+if g.args['annotate']: zmm_annotate.annotate_init()
 
 utils.dim_print('-----| Arguments to be used:')
 for k,v in g.args.items():
@@ -194,6 +208,8 @@ else:
         res = zmm_search.search_video(input_file=g.args['input'], out_file=g.out_file, eid=g.args['eventid'], mid=None, starttime=None, delay=0)
     elif g.args['blend']:
         res = zmm_blend.blend_video(input_file=g.args['input'], out_file=g.out_file, eid=g.args['eventid'], mid=None, starttime=None, delay=0)
+    elif g.args['annotate']:
+        res = zmm_annotate.annotate_video(input_file=g.args['input'],  eid=g.args['eventid'], mid=None, starttime=None)
 
 
 end_time = time.time()

@@ -110,8 +110,8 @@ def process_config():
     if g.args['minblendarea']:
         g.min_blend_area = g.args['minblendarea']
 
-    if not g.args['find'] and not g.args['blend']:
-        fail_print('You need to specify either --find or --blend')
+    if not g.args['find'] and not g.args['blend'] and not g.args['annotate']:
+        fail_print('You need to specify one of  --find or --blend or --annotate')
         exit(1)
 
 

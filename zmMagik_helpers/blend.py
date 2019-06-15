@@ -235,7 +235,7 @@ def blend_video(input_file=None, out_file=None, eid = None, mid = None, starttim
         if key& 0xFF == ord('c'):
             g.args['interactive']=False
 
-        if relevant:
+        if relevant or not g.args['onlyrelevant']:
             outf.write(merged_frame)
 
         else:
