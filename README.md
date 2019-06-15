@@ -30,6 +30,8 @@ Why
 
 * Andy posted an example of how other vendors blend multiple videos to give a common view quickly. I thought it would be fun to try
 
+* One thing leads to another and I keep doing new things to learn new things..
+
 Limitations
 ------------
 * Only works with video mp4 files. Did not bother adding support for JPEG store
