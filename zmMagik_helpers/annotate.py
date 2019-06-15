@@ -151,7 +151,7 @@ def annotate_video(input_file=None,  eid = None, mid = None, starttime=None):
 
         if relevant or not g.args['onlyrelevant']:
             #print ("WRITING FRAME")
-            outf.write(boxed_frame)
+            outf.write (merged_frame)
 
         else:
             #print ('irrelevant frame {}'.format(frame_cnt))

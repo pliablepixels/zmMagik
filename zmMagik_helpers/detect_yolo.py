@@ -66,7 +66,8 @@ class DetectYolo:
                 # draw a bounding box rectangle and label on the image
                 color = [int(c) for c in self.colors[classIDs[i]]]
                 cv2.rectangle(boxed_frame, (x, y), (x + w, y + h), color, 2)
-                text = "{}: {:.4f}".format(self.labels[classIDs[i]], confidences[i])
+                text = "{}: {:.2f}".format(self.labels[classIDs[i]], confidences[i])
+            
                 cv2.putText(boxed_frame, text, (x, y - 5), cv2.FONT_HERSHEY_SIMPLEX,0.5, color, 2)
             
                 # add object to mask
@@ -93,6 +94,9 @@ class DetectYolo:
                     text = self.labels[classIDs[i]] + ':' +dt.strftime('%b %d, %I:%M%p')
                     obj_info['time'] = text
                 text = text.upper()
+                if g.args['drawboxes']:
+                    cv2.rectangle(frame_b, (x, y), (x + w, y + h), (255,255,255), 1)
+
                 utils.write_text(frame_b, text, d_x, d_y)
                 set_frames['frames'].append (obj_info)
 

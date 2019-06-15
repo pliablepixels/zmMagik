@@ -152,6 +152,9 @@ ap.add_argument("--blend", nargs='?', const=True,default=False, type=utils.str2b
 
 ap.add_argument("--onlyrelevant", nargs='?', const=True,default=True, type=utils.str2bool ,help = "Only write frames that have detections")
 
+
+ap.add_argument("--drawboxes", nargs='?', const=True,default=False, type=utils.str2bool ,help = "draw bounding boxes aroun objects in final video")
+
 ap.add_argument("--minblendarea",help = "minimum area in pixels to accept as object of interest in forgeground extraction. Only applicable if using--blend", type=float, default=1500)
 ap.add_argument("--fontscale",help = "Size of font scale (1, 1.5 etc). Only applicable if using--blend", type=float, default=1)
 

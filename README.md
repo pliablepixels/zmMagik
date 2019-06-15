@@ -33,7 +33,7 @@ Why
 Limitations
 ------------
 * Only works with video mp4 files. Did not bother adding support for JPEG store
-* Very, very, very, pre-alpha
+* Very Beta. Also, if you don't have a GPU, make sure you play with the flags to optimize skipframes, detection mode, resize
 * Multi-server most likely won't work
 
 Installation

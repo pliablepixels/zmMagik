@@ -107,5 +107,7 @@ class DetectBackground:
             if g.args['detection_type'] != 'mixed':
                 # if its mixed, Yolo will write this
                 set_frames['frames'].append (obj_info)
+                if g.args['drawboxes']:
+                    cv2.rectangle(merged_frame, (x, y), (x+w, y+h), (255,0,0), 2)
         
         return merged_frame, foreground_a, frame_mask, relevant, boxed_frame
