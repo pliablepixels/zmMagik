@@ -6,15 +6,15 @@ Features
 ---------
 As of today, it lets you:
 
-* Create a blend of multiple events to quickly see how the day went. Swoosh!
+* Create a **blend** of multiple events to quickly see how the day went. Swoosh!
 
 <img src='https://github.com/pliablepixels/zmMagik/blob/master/sample/1.gif' width=400px />
 
-* Annotate recorded ZoneMinder videos. Ohmgooosh!
+* **Annotate** recorded ZoneMinder videos. Ohmgooosh!
 
 <img src='https://github.com/pliablepixels/zmMagik/blob/master/sample/3.gif' width=400px>
 
-* Find an image fragment inside multiple events. For example, someone stole your amazon package. Crop a picture of an event with that package and then ask zmMagik to search for events where this package went missing. Whoosh!
+* **Find** an image fragment inside multiple events. For example, someone stole your amazon package. Crop a picture of an event with that package and then ask zmMagik to search for events where this package went missing. Whoosh!
 
 <img src='https://github.com/pliablepixels/zmMagik/blob/master/sample/2.jpg' width=400px />
 
