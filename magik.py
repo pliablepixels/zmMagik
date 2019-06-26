@@ -36,6 +36,20 @@ import zmMagik_helpers.search as zmm_search
 import zmMagik_helpers.log as log
 
 
+# adapted from https://stackoverflow.com/a/12117065
+def float_01(x):
+    x = float(x)
+    if x < 0.0 or x > 1.0:
+        raise argparse.ArgumentTypeError('Float {} not in range of 0.1 to 1.0'.format(x))
+    return x
+def float_71(x):
+    x = float(x)
+    if x < 0.7 or x > 1.0:
+        raise argparse.ArgumentTypeError('Float {} not in range of 0.7 to 1.0'.format(x))
+    return x
+
+
+
 utils.init_colorama() # colorama
 
 def process_timeline():
@@ -126,7 +140,8 @@ ap.add_argument("--find",  help="image to look for (needs to be same size/orient
 ap.add_argument("--mask",  help="polygon points of interest within video being processed")
 ap.add_argument("--skipframes", help="how many frames to skip", type=int)
 ap.add_argument("--fps", help="fps of video, to get timing correct", type=int)
-ap.add_argument("--threshold", help="a number between 0 to 1 on accuracy threshold. 0.7 or above required", type=float, default=0.7, choices=(0.7, 1.0))
+ap.add_argument("--threshold", help="Only for background extraction. a number between 0 to 1 on accuracy threshold. 0.7 or above required", type=float_71, default=0.7)
+ap.add_argument("--confidence", help="Only for YOLO. a number between 0 to 1 on minimum confidence score", type=float_01, default=0.6)
 ap.add_argument("-a", "--all", action='store_true', help="process all frames, don't stop at first find")
 ap.add_argument("-w", "--write", action='store_true', help="create video with matched frames. Only applicable for --find")
 ap.add_argument("--interactive", action='store_true', help="move to next frame after keypress. Press 'c' to remove interactive")
@@ -139,6 +154,8 @@ ap.add_argument("--detection_type",  help="Type of detection for blending", defa
 ap.add_argument("--config_file",  help="Config file for ML based detection with full path")
 ap.add_argument("--weights_file",  help="Weights file for ML based detection with full path")
 ap.add_argument("--labels_file",  help="labels file for ML based detection with full path")
+ap.add_argument("--meta_file",  help="meta file for Yolo when using GPU mode")
+ap.add_argument("--darknet_lib",  help="path+filename of libdarknet shared object")
 
 ap.add_argument("--from", help = "arbitrary time range like '24 hours ago' or formal dates")
 ap.add_argument("--to", help = "arbitrary time range like '2 hours ago' or formal dates")
@@ -168,6 +185,7 @@ ap.add_argument("--balanceintensity", nargs='?',const=True,default=False,type=ut
 
 
 ap.add_argument('--present', nargs='?',default=True, const=True, type=utils.str2bool, help='look for frames where image in --match is present')
+ap.add_argument('--gpu', nargs='?',default=True, const=True, type=utils.str2bool, help='enable GPU processing. Needs libdarknet.so compiled in GPU mode')
 
 g.args = vars(ap.parse_args())
 utils.process_config()

@@ -3,30 +3,39 @@
 # Simply do a -c <this config file> and add any other parameters you want in CLI
 # and they will be merged
 
+
 username=admin
-password=password
+password=portal
 portal=https://server/zm
 objectonly=False
 display=True
 alarmonly=True
 minblendarea=500
+
+gpu=False
+#gpu=True
+#darknet_lib=/home/pp/fiddle/zmMagik/libdarknet_gpu.so
+
 # doorbell
 #mask=4,406 1276,411 1279,719 0,719
 
 #driveway
 #mask=69,130 604,68 646,307 1167,616 0,619
-skipframes=5
+fps=5
+skipframes=1
 fontscale=0.8
 threshold=0.7
+confidence=0.5
 resize = 0.5
 balanceintensity=False
 
 # if you select yolo, make sure you have the config/weight/label files (yolo or tinyyolo files)
-detection_type=mixed
-#detection_type=yolo_extraction
+#detection_type=mixed
+detection_type=yolo_extraction
 #detection_type=background_extraction
 
 # you need these if you use yolo for detection
-#config_file=/path/yolov3.cfg
-#weights_file=/path/to/yolov3.weights
-#labels_file=/path/to/coco.names
+config_file=/var/lib/zmeventnotification/models/yolov3/yolov3.cfg
+weights_file=/var/lib/zmeventnotification/models/yolov3/yolov3.weights
+labels_file=/var/lib/zmeventnotification/models/yolov3/yolov3_classes.txt
+
