@@ -50,6 +50,7 @@ class DetectYolo:
         boxed_frame = frame.copy()
 
         if not g.args['gpu']:
+            # we use OpenCV's optimized CPU code
             ln = self.net.getLayerNames()
             ln = [ln[i[0] - 1] for i in self.net.getUnconnectedOutLayers()]
             blob = cv2.dnn.blobFromImage(
@@ -123,6 +124,9 @@ class DetectYolo:
 
                     
         else:  # GPU code
+            # we use darknet directly 
+            # if you haven't conmpiled darknet in gpu mode, you are going
+            # to see terrible performance
             im = self.m.array_to_image(frame)
             detections = self.m.detect_image(im)
             boxes = []
@@ -182,22 +186,13 @@ class DetectYolo:
         
         foreground_a = cv2.bitwise_and(frame,frame, mask=frame_mask)
         foreground_b = cv2.bitwise_and(frame_b,frame_b, mask=frame_mask)
-      
-        #combined_fg = cv2.bitwise_and(foreground_a, foreground_b)
         combined_fg= cv2.addWeighted(foreground_b, 0.5, foreground_a, 0.5,0)
-
-        #cv2.imshow("fgb", combined_fg)
         frame_mask_inv = cv2.bitwise_not(frame_mask)
 
         # blend frame with foreground a missing
         modified_frame_b = cv2.bitwise_and(frame_b, frame_b, mask=frame_mask_inv)
-        
-       
         merged_frame = cv2.add(modified_frame_b, combined_fg)
-
           # draw mask on blend frame
         cv2.polylines(merged_frame, [g.raw_poly_mask], True, (0,0,255), thickness=1)
-
-         
         #return merged_frame, foreground_a, frame_mask, relevant
         return merged_frame, foreground_a, frame_mask, relevant, boxed_frame

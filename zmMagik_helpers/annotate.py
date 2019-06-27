@@ -1,4 +1,7 @@
 
+# FIXME - most of this code is really blend code too
+# need to combine them better
+
 import cv2
 import time
 from tqdm import tqdm
@@ -22,13 +25,14 @@ def annotate_init():
     #print (g.args['detection_type'])
     if g.args['detection_type'] == 'background_extraction':
         import zmMagik_helpers.detect_background as FgBg
-        det = FgBg.DetectBackground(min_accuracy = g.args['threshold'], min_annotate_area=g.args['minblendarea'])
+        det = FgBg.DetectBackground(min_accuracy = g.args['threshold'], min_blend_area=g.args['minblendarea'])
 
     elif g.args['detection_type'] == 'yolo_extraction':
         import zmMagik_helpers.detect_yolo as Yolo
         det = Yolo.DetectYolo (configPath = g.args['config_file'],
-                              weightsPath = g.args['weights_file'],
-                              labelsPath =  g.args['labels_file'] )
+                              weightPath = g.args['weights_file'],
+                              labelsPath =  g.args['labels_file'],
+                              darknetLib = g.args['darknet_lib'])
     
 
     elif g.args['detection_type'] == 'mixed':
@@ -36,7 +40,8 @@ def annotate_init():
         import zmMagik_helpers.detect_yolo as Yolo
         det =  FgBg.DetectBackground(min_accuracy = g.args['threshold'], min_blend_area=g.args['minblendarea'])
         det2 = Yolo.DetectYolo (configPath = g.args['config_file'],
-                              weightsPath = g.args['weights_file'],
+                              weightPath = g.args['weights_file'],
+                              darknetLib = g.args['darknet_lib'],
                               labelsPath =  g.args['labels_file'] )
  
 
