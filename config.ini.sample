@@ -46,7 +46,7 @@ fps=5
 
 # How many frames will be skipped during processing. Use to make things faster
 # 1 means no frames skipped
-skipframes=1
+skipframes=3
 # Used only for background_extraction mode. Keep this to 0.7
 threshold=0.7
 # Used by Yolo, if you use yolo or mixed mode. This is the minimum confidence level
