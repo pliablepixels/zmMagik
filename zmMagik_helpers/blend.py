@@ -124,7 +124,7 @@ def blend_video(input_file=None, out_file=None, eid = None, mid = None, starttim
     bar_new_video = tqdm(total=total_frames_vid, desc='New video', miniters = 10)
     bar_blend_video = tqdm (total=total_frames_vid_blend, desc='Blend', miniters = 10)
 
-    
+    is_trailing = False
     # first wait for delay seconds
     # will only come in if blend video exists, as in first iter it is 0
     # However, if blend wasn't created (no relevant frames), ignore delay
@@ -245,6 +245,10 @@ def blend_video(input_file=None, out_file=None, eid = None, mid = None, starttim
                 #print ('YOLO RELEVANT={}'.format(relevant))
                 bar_new_video.set_description('New video')        
       
+            if relevant:
+                is_trailing = True
+                trail_frames = 0
+
         if g.args['display']:
                 x = 320
                 y = 240
@@ -279,8 +283,14 @@ def blend_video(input_file=None, out_file=None, eid = None, mid = None, starttim
             #print ("WRITING")
             outf.write(merged_frame)
             blend_frame_written_count = blend_frame_written_count + 1
-            
-
+        elif is_trailing:
+            tail_frames = trail_frames + 1
+            if trail_frames > g.args['trailframes']: 
+                start_trailing = False
+            else:
+                bar_new_video.set_description('Trailing frames')
+                outf.write(merged_frame)
+                blend_frame_written_count = blend_frame_written_count + 1
         else:
             #print ('irrelevant frame {}'.format(frame_cnt))
             pass
