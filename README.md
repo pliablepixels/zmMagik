@@ -115,7 +115,7 @@ Simply put:
 
 * How much GPU memory do I need?
   * The YoloV3 model config I use takes up 1.6GB of GPU memory
-  * Note that I use a reduced footprint yolo config. I have 4GB of GPU memory, so the default yolov3.cfg did not work and ate up all my memory. This is my modified `yolov3.cfg` section to make it work:
+  * Note that I use a reduced footprint yolo config. I have 4GB of GPU memory, so the default `yolov3.cfg` did not work and ate up all my memory. This is my modified `yolov3.cfg` section to make it work:
 
 ```
 [net]
