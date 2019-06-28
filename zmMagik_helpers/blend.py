@@ -284,11 +284,13 @@ def blend_video(input_file=None, out_file=None, eid = None, mid = None, starttim
             outf.write(merged_frame)
             blend_frame_written_count = blend_frame_written_count + 1
         elif is_trailing:
-            tail_frames = trail_frames + 1
+            trail_frames = trail_frames + 1
+
             if trail_frames > g.args['trailframes']: 
                 start_trailing = False
             else:
-                bar_new_video.set_description('Trailing frames')
+                bar_new_video.set_description('Trailing frame')
+               # bar_new_video.write('trail frame: {}'.format(trail_frames))
                 outf.write(merged_frame)
                 blend_frame_written_count = blend_frame_written_count + 1
         else:
