@@ -10,6 +10,9 @@ import zmMagik_helpers.globals as g
 import zmMagik_helpers.log as log
 from datetime import datetime
 
+import zmMagik_helpers.FVS as FVS
+from imutils.video import FPS
+
 det = None
 det2 = None
 blend_filename = 'blended-'
@@ -27,8 +30,9 @@ def blend_init():
     elif g.args['detection_type'] == 'yolo_extraction':
         import zmMagik_helpers.detect_yolo as Yolo
         det = Yolo.DetectYolo (configPath = g.args['config_file'],
-                              weightsPath = g.args['weights_file'],
-                              labelsPath =  g.args['labels_file'] )
+                              weightPath = g.args['weights_file'],
+                              labelsPath =  g.args['labels_file'],
+                              darknetLib = g.args['darknet_lib'])
     
 
     elif g.args['detection_type'] == 'mixed':
@@ -36,7 +40,8 @@ def blend_init():
         import zmMagik_helpers.detect_yolo as Yolo
         det =  FgBg.DetectBackground(min_accuracy = g.args['threshold'], min_blend_area=g.args['minblendarea'])
         det2 = Yolo.DetectYolo (configPath = g.args['config_file'],
-                              weightsPath = g.args['weights_file'],
+                              weightPath = g.args['weights_file'],
+                              darknetLib = g.args['darknet_lib'],
                               labelsPath =  g.args['labels_file'] )
  
 
@@ -48,6 +53,8 @@ def blend_init():
 def blend_video(input_file=None, out_file=None, eid = None, mid = None, starttime=None, delay=0):
 
     global det, det2
+    create_blend = False
+    blend_frame_written_count = 0
 
     set_frames = {
         'eventid': eid,
@@ -58,60 +65,70 @@ def blend_video(input_file=None, out_file=None, eid = None, mid = None, starttim
 
     print ('Blending: {}'.format(input_file))
     
-    vid = cv2.VideoCapture(input_file)
-    if not vid.isOpened(): 
+    vid = FVS.FileVideoStream(input_file)
+    time.sleep(1)
+    #vid = cv2.VideoCapture(input_file)
+    cvobj = vid.get_stream_object()
+    total_frames_vid =  int(cvobj.get(cv2.CAP_PROP_FRAME_COUNT)) 
+    vid.start()
+    if not cvobj.isOpened(): 
         raise ValueError('Error reading video {}'.format(input_file))
 
     if not g.orig_fps:
-        orig_fps = max(1, (g.args['fps'] or int(vid.get(cv2.CAP_PROP_FPS))))
+        orig_fps = max(1, (g.args['fps'] or int(cvobj.get(cv2.CAP_PROP_FPS))))
         g.orig_fps = orig_fps
     else:
         orig_fps = g.orig_fps
 
-    width  = int(vid.get(3))
-    height = int(vid.get(4))
+    width  = int(cvobj.get(3))
+    height = int(cvobj.get(4))
     if g.args['resize']:
         resize = g.args['resize']
-       # print (width,height, resize)
+        #print (width,height, resize)
         width = int(width * resize)
         height = int(height * resize)
 
+    total_frames_vid_blend = 0
     if os.path.isfile(blend_filename):
-        vid_blend = cv2.VideoCapture(blend_filename)
+        vid_blend = FVS.FileVideoStream(blend_filename)
+        time.sleep(1)
+        cvobj_blend = vid_blend.get_stream_object()
+        total_frames_vid_blend =int(cvobj_blend.get(cv2.CAP_PROP_FRAME_COUNT))
+        vid_blend.start()
+        #vid_blend = cv2.VideoCapture(blend_filename)
         #utils.dim_print('Video blend {}'.format(vid_blend))
     else:
         vid_blend = None
+        cvobj_blend = None
         print ('blend file will be created in this iteration')
+        create_blend = True
     
 
     fourcc = cv2.VideoWriter_fourcc(*'mp4v')
     outf = cv2.VideoWriter('new-blended-temp.mp4', fourcc, orig_fps, (width,height)) 
-    utils.bold_print('Output video will be {}fps'.format(orig_fps))
+    utils.bold_print('Output video will be {}*{}@{}fps'.format(width,height,orig_fps))
 
     if g.args['skipframes']:
         fps_skip = g.args['skipframes']
     else:
-        fps_skip = max(1,int(vid.get(cv2.CAP_PROP_FPS)/2))
+        fps_skip = max(1,int(cvobj.get(cv2.CAP_PROP_FPS)/2))
 
 
-    total_frames_vid =  int(vid.get(cv2.CAP_PROP_FRAME_COUNT)) 
-    total_frames_vid_blend = 0
-
-    if vid_blend:
-        total_frames_vid_blend =int(vid_blend.get(cv2.CAP_PROP_FRAME_COUNT)) 
+    if vid_blend: 
         utils.dim_print ('frames in new video: {} vs blend: {}'.format( total_frames_vid, total_frames_vid_blend))
 
     start_time = time.time()
     utils.dim_print ('fps={}, skipping {} frames'.format(orig_fps, fps_skip))
     utils.dim_print ('delay for new video is {}s'.format(delay))
 
-    bar_new_video = tqdm(total=total_frames_vid, desc='New video')
-    bar_blend_video = tqdm (total=total_frames_vid_blend, desc='Blend')
+    bar_new_video = tqdm(total=total_frames_vid, desc='New video', miniters = 10)
+    bar_blend_video = tqdm (total=total_frames_vid_blend, desc='Blend', miniters = 10)
 
     
     # first wait for delay seconds
     # will only come in if blend video exists, as in first iter it is 0
-    if delay:
+    # However, if blend wasn't created (no relevant frames), ignore delay
+    if delay and not create_blend:
         frame_cnt = 0
         bar_new_video.set_description ('waiting for {}s'.format(delay))
         prev_good_frame_b = None
@@ -119,7 +136,11 @@ def blend_video(input_file=None, out_file=None, eid = None, mid = None, starttim
             if vid_blend is None:
                 frame_b = prev_good_frame_b
             else:
-                succ_b, frame_b = vid_blend.read()
+                frame_b = vid_blend.read()
+                if frame_b is None:
+                    succ_b = False
+                else:
+                    succ_b = True
                 if not  succ_b: 
                     vid_blend = None
                 else:
@@ -137,7 +158,15 @@ def blend_video(input_file=None, out_file=None, eid = None, mid = None, starttim
     bar_new_video.set_description ('New video')
     frame_cnt = 0
     while True:
-        succ, frame = vid.read()
+        if vid.more():
+            frame = vid.read()
+            if frame is None:
+                succ = False
+            else:
+                succ = True
+                
+
+        #succ, frame = vid.read()
         
         frame_cnt = frame_cnt + 1
         bar_new_video.update(1)
@@ -145,14 +174,20 @@ def blend_video(input_file=None, out_file=None, eid = None, mid = None, starttim
         if frame_cnt % fps_skip:
             continue
       
-        succ_b = False
         if succ and g.args['resize']:
             resize = g.args['resize']
             rh, rw, rl = frame.shape
             frame = cv2.resize(frame, (int(rw*resize), int(rh*resize)))
 
+        succ_b = False
         if vid_blend: 
-            succ_b, frame_b = vid_blend.read()
+            if vid_blend.more():
+                frame_b = vid_blend.read()
+                if frame_b is None:
+                    succ_b = False
+                else:
+                    succ_b = True
+            #succ_b, frame_b = vid_blend.read()
             if succ_b:
                 bar_blend_video.update(1)
             else:
@@ -197,12 +232,17 @@ def blend_video(input_file=None, out_file=None, eid = None, mid = None, starttim
                 else:
                     # blend is brighter
                     frame = utils.hist_match(frame, frame_b)     
-               
+            #h1, w1 = frame.shape[:2]
+            #hm, wm = frame_b.shape[:2]
+        
+            #print ("{}*{} frame == {}*{} frame_b".format(h1,w1,hm,wm))
             merged_frame, foreground_a, frame_mask, relevant, boxed_frame = det.detect(frame, frame_b, frame_cnt, orig_fps, starttime, set_frames)
+            #print ('RELEVANT={}'.format(relevant))
             if relevant and g.args['detection_type'] == 'mixed':
                 bar_new_video.set_description('YOLO running')
                 #utils.dim_print('Adding YOLO, found relevance in backgroud motion')
                 merged_frame, foreground_a, frame_mask, relevant, boxed_frame = det2.detect(frame, frame_b, frame_cnt, orig_fps, starttime, set_frames)  
+                #print ('YOLO RELEVANT={}'.format(relevant))
                 bar_new_video.set_description('New video')        
       
         if g.args['display']:
@@ -235,8 +275,11 @@ def blend_video(input_file=None, out_file=None, eid = None, mid = None, starttim
         if key& 0xFF == ord('c'):
             g.args['interactive']=False
 
-        if relevant or not g.args['onlyrelevant']:
+        if relevant or not g.args['relevantonly']:
+            #print ("WRITING")
             outf.write(merged_frame)
+            blend_frame_written_count = blend_frame_written_count + 1
+            
 
         else:
             #print ('irrelevant frame {}'.format(frame_cnt))
@@ -246,17 +289,22 @@ def blend_video(input_file=None, out_file=None, eid = None, mid = None, starttim
 
     bar_blend_video.close()
     bar_new_video.close()
-    vid.release()
+    vid.stop()
     outf.release()
-    if vid_blend: vid_blend.release() 
+    if vid_blend: vid_blend.stop() 
     #input("Press Enter to continue...")
-    try:
-        os.remove(blended_filename)
-    except:
-       pass
-    os.rename ('new-blended-temp.mp4', blend_filename)
-    utils.success_print('Blended file updated in {}'.format(blend_filename))
-
-    g.json_out.append(set_frames)
+    if create_blend and blend_frame_written_count == 0:
+        utils.fail_print('No relevant frames found, blend file not created. Will try next iteration')
+        os.remove('new-blended-temp.mp4')
+    else:
+        rel = 'relevant ' if g.args['relevantonly'] else ''
+        utils.success_print ('{} total {}frames written to blend file'.format(blend_frame_written_count, rel))
+        try:
+            os.remove(blended_filename)
+        except:
+           pass
+        os.rename ('new-blended-temp.mp4', blend_filename)
+        utils.success_print('Blended file updated in {}'.format(blend_filename))
+        g.json_out.append(set_frames)
 
     return False

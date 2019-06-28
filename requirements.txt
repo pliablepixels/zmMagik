@@ -1,3 +1,4 @@
+imutils
 opencv-contrib-python>=4.1.0.25
 dateparser>=0.7.1
 numpy>=1.16.0

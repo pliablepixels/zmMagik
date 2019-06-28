@@ -115,13 +115,24 @@ def process_config():
         exit(1)
 
 
-def write_text(frame, text, x,y):
+def write_text(frame=None, text=None, x=None,y=None, W=None, H=None, adjust=False):
     (tw, th) = cv2.getTextSize(text, cv2.FONT_HERSHEY_PLAIN, fontScale=g.args['fontscale'], thickness=2)[0]
     loc_x1 = x
     loc_y1 = y - th - 4
     loc_x2 = x + tw + 4
     loc_y2 = y
+
+    if adjust:
+        if not W or not H:
+            fail_print('cannot auto adjust text as W/H  not provided')
+        else:
+            if loc_x1 + tw > W:
+                loc_x1 = max (0, loc_x1 - (loc_x1+tw - W))
+            if loc_y1 + th > H:
+                loc_y1 = max (0, loc_y1 - (loc_y1+th - H))
+
     cv2.rectangle(frame, (loc_x1, loc_y1), (loc_x1+tw+4,loc_y1+th+4), (0,0,0), cv2.FILLED)
     cv2.putText(frame, text, (loc_x1+2, loc_y2-2), cv2.FONT_HERSHEY_PLAIN, fontScale=g.args['fontscale'], color=(255,255,255), thickness=1)
+    return loc_x1, loc_y1, loc_x1+tw+4,loc_y1+th+4
 
     

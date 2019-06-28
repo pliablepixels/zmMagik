@@ -79,7 +79,8 @@ Note that `amazonpackage.jpg` needs to be the same dimensions/orientation as in 
 
 FAQ
 -----
-
+* How do I use GPU acceleration? 
+  * See GPU section below
 * What is "mixed" background extraction?
   * This is the default mode. It uses the very fast openCV background subtraction to detect motion, and then uses YOLO to refine the search to see if it really is an object worth marking. Use this mode by default, unless you need more speed, in which case, use "backround_extraction"
 
@@ -100,3 +101,56 @@ FAQ
   * Congratulations, maybe no one stole your amazon package
   * Make sure image you are looking for is not rotated/resized/etc. needs to be original dimensions
 
+
+GPU FAQ
+-------
+As of today, OpenCV DNN doesn't support GPU acceleration for NVIDA (no idea about non NVIDIA). This may change soon with a [work in progress contribution](https://github.com/opencv/opencv/pull/14827) to get it working with CUDA. Till that happens, we need to directly use a GPU enabled version for YoloV3. I went with the [darknet fork maintained by AlexyAB](https://github.com/AlexeyAB/darknet)
+
+Simply put:
+* Compile it with GPU
+* Make sure it is actually using GPU
+* then set `gpu=True` and `darknet_lib=<path/to/filename of gpu accelerated so>`
+* If you need help compiling darknet for GPU and CUDA 10.x, see [simpleYolo](https://github.com/pliablepixels/simpleYolo)
+* Do NOT use darknet lib directly for a CPU compiled library. It is terribly slow (in my tests, OpenCV was around 50x faster)
+
+* How much GPU memory do I need?
+  * The YoloV3 model config I use takes up 1.6GB of GPU memory
+  * Note that I use a reduced footprint yolo config. I have 4GB of GPU memory, so the default yolov3.cfg did not work and ate up all my memory. This is my modified `yolov3.cfg` section to make it work:
+
+```
+[net]
+batch=1
+subdivisions=1
+width=416
+height=416
+<and then all the stuff that follows>
+```
+
+* How much speed boost can I expect with GPU?
+
+  * Here is a practical comparison. I ran a blend operation on my driveway camera (modect) for a full day's worth of alarmed events. I used 'mixed' mode, which first used openCV background subtraction and then YOLO if the first mode found anything. This was to be fair to the CPU stats when compared. It grabbed a total of 27 video events:
+  ```
+  python ./magik.py --blend --from "1 day ago"  --monitors 8 -c ./config.ini --gpu=True --alarmonly=True --skipframes=1
+
+  Total time: 250.72s
+  ```
+
+  I then ran it without GPU: (Note that I have `libopenblas-dev liblapack-dev libblas-dev` configured with OpenCV to improve CPU performance a lot)
+  ```
+  python ./magik.py --blend --from "1 day ago"  --monitors 8 -c ./config.ini --gpu=False --alarmonly=True --skipframes=1
+
+  Total time: 1234.77s
+  ```
+
+  **Thats a 5x improvement**
+
+  * On my 1050 Ti, YoloV3 inferences drops to 120ms or less, compared to 2-3 seconds on GPU
+  * That being said, blending/annotating involves:
+    * reading frames (A)
+    * processing frames (B)
+    * writing frames (C)
+  * GPU affects point B. If you are reading very large events, A & C will still take its own time. You likely won't see a big improvement there. If there are many objects (B), then obviously, GPU performance improvements will have a huge impact. To make A & C faster:
+    * use `resize`
+    * use `skipframes`
+    * use `alarmonly`
+    * All that being said, I'm using a threaded opencv pipeline to read frames which does improve read performance compared to before (credit to imutils)
