@@ -13,6 +13,12 @@ import zmMagik_helpers.globals as g
 import zmMagik_helpers.log as log
 from datetime import datetime
 
+import imutils
+
+import zmMagik_helpers.FVS as FVS
+from imutils.video import FPS
+
+
 det = None
 det2 = None
 annotate_filename = 'annotated-'
@@ -63,18 +69,23 @@ def annotate_video(input_file=None,  eid = None, mid = None, starttime=None):
 
     print ('annotating: {}'.format(input_file))
     
-    vid = cv2.VideoCapture(input_file)
-    if not vid.isOpened(): 
+    #vid = cv2.VideoCapture(input_file)
+    vid = FVS.FileVideoStream(input_file)
+    time.sleep(1)
+    cvobj = vid.get_stream_object()
+    vid.start()
+    if not cvobj.isOpened(): 
         raise ValueError('Error reading video {}'.format(input_file))
 
     if not g.orig_fps:
-        orig_fps = max(1, (g.args['fps'] or int(vid.get(cv2.CAP_PROP_FPS))))
+        orig_fps = max(1, (g.args['fps'] or int(cvobj.get(cv2.CAP_PROP_FPS))))
         g.orig_fps = orig_fps
     else:
         orig_fps = g.orig_fps
 
-    width  = int(vid.get(3))
-    height = int(vid.get(4))
+    
+    width  = int(cvobj.get(3))
+    height = int(cvobj.get(4))
     
     if g.args['resize']:
         resize = g.args['resize']
@@ -89,10 +100,10 @@ def annotate_video(input_file=None,  eid = None, mid = None, starttime=None):
     if g.args['skipframes']:
         fps_skip = g.args['skipframes']
     else:
-        fps_skip = max(1,int(vid.get(cv2.CAP_PROP_FPS)/2))
+        fps_skip = max(1,int(cvobj.get(cv2.CAP_PROP_FPS)/2))
 
 
-    total_frames =  int(vid.get(cv2.CAP_PROP_FRAME_COUNT)) 
+    total_frames =  int(cvobj.get(cv2.CAP_PROP_FRAME_COUNT)) 
    
 
     start_time = time.time()
@@ -103,10 +114,23 @@ def annotate_video(input_file=None,  eid = None, mid = None, starttime=None):
 
     frame_cnt = 0
     while True:
-        succ, frame = vid.read()
+        if vid.more():
+            frame = vid.read()
+            if frame is None:
+                succ = False
+            else:
+                succ = True
+        else:
+            frame = None
+            succ = False
+        #succ, frame = vid.read()
         if not succ: break
+       
         frame_cnt = frame_cnt + 1
-        bar_annotate_video.update(1)
+
+        if not frame_cnt % 10:
+            bar_annotate_video.update(10)
+            
 
         if frame_cnt % fps_skip:
             continue
@@ -154,7 +178,7 @@ def annotate_video(input_file=None,  eid = None, mid = None, starttime=None):
         if key& 0xFF == ord('c'):
             g.args['interactive']=False
 
-        if relevant or not g.args['onlyrelevant']:
+        if relevant or not g.args['relevantonly']:
             #print ("WRITING FRAME")
             outf.write (merged_frame)
 
@@ -165,7 +189,7 @@ def annotate_video(input_file=None,  eid = None, mid = None, starttime=None):
    
 
     bar_annotate_video.close()
-    vid.release()
+    vid.stop()
     outf.release()
 
     utils.success_print('annotated file updated in {}'.format(annotate_filename))

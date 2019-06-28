@@ -74,6 +74,8 @@ class DetectBackground:
         # clear out parts on blended frames where foreground will be added
         frame_mask_inv = cv2.bitwise_not(frame_mask)
         # blend frame with foreground a missing
+    
+        
         modified_frame_b = cv2.bitwise_and(frame_b, frame_b, mask=frame_mask_inv)
         merged_frame = cv2.add(modified_frame_b, foreground_a)
 

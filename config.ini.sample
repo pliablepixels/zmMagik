@@ -5,36 +5,71 @@
 
 
 username=admin
-password=portal
+password=password
 portal=https://server/zm
+
+# If True, only extract events that have object detection previously
+# identified using zmeventserver machine learning hooks
 objectonly=False
-display=True
-alarmonly=True
+
+# If True, opens a useful graphical window to show whats being detected
+# and how. Needs X
+display=False
+
+# Only extracts events that have at least one alarmed frame
+alarmonly=False
+
+# Writes frames only if the detection logic said it found something
+relevantonly=True
+
+# Minimum area the object that moves must occupy. Only relevant
+# if you selected mixed or extract_background mode
 minblendarea=500
 
-gpu=False
-#gpu=True
-#darknet_lib=/home/pp/fiddle/zmMagik/libdarknet_gpu.so
+# If you use GPU, then you need to have a compatible GPU
+# also, you need to have darknet compiled in GPU mode
+# and point darknet_lib to where that compiled SO is placed
+gpu=True
+darknet_lib=/home/pp/fiddle/zmMagik/libdarknet_gpu.so
 
+# If you want detections to lie inside a specified polygon
+# Note that only one mask is supported for now
 # doorbell
 #mask=4,406 1276,411 1279,719 0,719
-
 #driveway
 #mask=69,130 604,68 646,307 1167,616 0,619
+
+# I've found it useful to manually specific fps of videos being processed
+# If you don't I'll try and guess, but its a bit random in my experience. 
+# Try without it. If you get accurate results, you can keep this commented
 fps=5
+
+# How many frames will be skipped during processing. Use to make things faster
+# 1 means no frames skipped
 skipframes=1
-fontscale=0.8
+# Used only for background_extraction mode. Keep this to 0.7
 threshold=0.7
+# Used by Yolo, if you use yolo or mixed mode. This is the minimum confidence level
+# of matched objects (keep it to 0.5 to 0.9)
 confidence=0.5
+# How much to resize images. No need to feed in huge frames. 
 resize = 0.5
+
+# If enabled, it tries to histogram match colors of of new event 
+# to blended events. I tried this while blending day and night events. It adjusts
+# to the higher intensity (day). Not sure it really works well.
 balanceintensity=False
 
-# if you select yolo, make sure you have the config/weight/label files (yolo or tinyyolo files)
-#detection_type=mixed
-detection_type=yolo_extraction
+# size of text that is written on top of objects
+fontscale=0.8
+
+# First uses opencv background extraction to detect if an object is moving. If it is moving, then run yolo on it to make sure its something that is valid
+detection_type=mixed
+
+#detection_type=yolo_extraction
 #detection_type=background_extraction
 
-# you need these if you use yolo for detection
+# you need these if you use yolo or mixed for detection
 config_file=/var/lib/zmeventnotification/models/yolov3/yolov3.cfg
 weights_file=/var/lib/zmeventnotification/models/yolov3/yolov3.weights
 labels_file=/var/lib/zmeventnotification/models/yolov3/yolov3_classes.txt

@@ -78,7 +78,7 @@ class DetectYolo:
                     # extract the bounding box coordinates
                     (x, y) = (boxes[i][0], boxes[i][1])
                     (width, height) = (boxes[i][2], boxes[i][3])
-                    label = self.labels[classIDs[i]]
+                    label = self.labels[i]
                     confidence = confidences[i]
 
                     pts = Polygon([[x,y], [x+width,y], [x+width, y+height], [x,y+height]])
@@ -116,13 +116,19 @@ class DetectYolo:
 
                         # work on displaying text properly
                         text = text.upper()
+
                         delta = 5
                         d_x = max (x-delta, 0)
                         d_y = max (y-delta, 0)
+                        d_w = min (W, width+delta)
+                        d_h = min (H, height+delta)
                         bsx, bsy, bex, bey = utils.write_text(frame=frame_b, text=text, x=d_x, y=d_y, W=W, H=H, adjust=True)
+                        # frame mask of text
                         cv2.rectangle(frame_mask, (bsx, bsy), (bex, bey), (255, 255, 255), cv2.FILLED)
-
+                        # frame mask of object
+                        cv2.rectangle(frame_mask, (d_x,d_y), (d_x+d_w, d_y+d_h), (255, 255, 255), cv2.FILLED)
                     
+                       
         else:  # GPU code
             # we use darknet directly 
             # if you haven't conmpiled darknet in gpu mode, you are going
@@ -144,7 +150,7 @@ class DetectYolo:
                     pts = Polygon([[x,y], [x+width,y], [x+width, y+height], [x,y+height]])
                     if g.poly_mask is None or g.poly_mask.intersects(pts):
                         relevant = True
-                        boxes.append([x, y, int(width), int(height)])
+                        boxes.append([x, y, width, height])
                         confidences.append(float(confidence))
                         labels.append(label) 
                         color = (255,0,0)
@@ -179,9 +185,14 @@ class DetectYolo:
                         delta = 5
                         d_x = max (x-delta, 0)
                         d_y = max (y-delta, 0)
+                        d_w = min (W, width+delta)
+                        d_h = min (H, height+delta)
                         bsx, bsy, bex, bey = utils.write_text(frame=frame_b, text=text, x=d_x, y=d_y, W=W, H=H, adjust=True)
+                        # frame mask of text
                         cv2.rectangle(frame_mask, (bsx, bsy), (bex, bey), (255, 255, 255), cv2.FILLED)
-
+                        # frame mask of object
+                        cv2.rectangle(frame_mask, (d_x,d_y), (d_x+d_w, d_y+d_h), (255, 255, 255), cv2.FILLED)
+                    
 
         
         foreground_a = cv2.bitwise_and(frame,frame, mask=frame_mask)

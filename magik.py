@@ -167,7 +167,7 @@ ap.add_argument("--annotate", nargs='?', const=True,default=False, type=utils.st
 
 ap.add_argument("--blend", nargs='?', const=True,default=False, type=utils.str2bool ,help = "overlay all videos in the time range. Only applicable if using --from --to or --eventid")
 
-ap.add_argument("--onlyrelevant", nargs='?', const=True,default=True, type=utils.str2bool ,help = "Only write frames that have detections")
+ap.add_argument("--relevantonly", nargs='?', const=True,default=True, type=utils.str2bool ,help = "Only write frames that have detections")
 
 
 ap.add_argument("--drawboxes", nargs='?', const=True,default=False, type=utils.str2bool ,help = "draw bounding boxes aroun objects in final video")
