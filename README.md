@@ -152,5 +152,6 @@ height=416
   * GPU affects point B. If you are reading very large events, A & C will still take its own time. You likely won't see a big improvement there. If there are many objects (B), then obviously, GPU performance improvements will have a huge impact. To make A & C faster:
     * use `resize`
     * use `skipframes`
-    * use `alarmonly`
+    * use `alarmonly=True`
+    * If you use mocord in ZM, then starting ZM 1.34, set `EVENT_CLOSE_MODE` to "alarm". That will create a new event when an alarm occurs, and close it when the alarm closes. That will help you speed things up a lot 
     * All that being said, I'm using a threaded opencv pipeline to read frames which does improve read performance compared to before (credit to imutils)
