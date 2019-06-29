@@ -8,6 +8,7 @@ import dateparser
 from datetime import datetime, timedelta
 import zmMagik_helpers.simpleyolo.simpleYolo as yolo
 from ctypes import *
+import re
 
 
 class IMAGE(Structure):
@@ -63,6 +64,10 @@ class DetectYolo:
                     classID = np.argmax(scores)
                     confidence = scores[classID]
                     if confidence > g.args['confidence']:
+                        r = re.compile(g.args['detectpattern'])
+                        if not re.match(r, label):
+                            #utils.dim_print('object "{}" does not match "{}"'.format(label, g.args['detectpattern']))
+                            continue
                         box = detection[0:4] * np.array([W, H, W, H])
                         (centerX, centerY, width, height) = box.astype("int")
                         x = int(centerX - (width / 2))
@@ -117,14 +122,14 @@ class DetectYolo:
                         # work on displaying text properly
                         text = text.upper()
 
-                        delta = 5
+                        delta = 0
                         d_x = max (x-delta, 0)
                         d_y = max (y-delta, 0)
                         d_w = min (W, width+delta)
                         d_h = min (H, height+delta)
                         bsx, bsy, bex, bey = utils.write_text(frame=frame_b, text=text, x=d_x, y=d_y, W=W, H=H, adjust=True)
                         # frame mask of text
-                        cv2.rectangle(frame_mask, (bsx, bsy), (bex, bey), (255, 255, 255), cv2.FILLED)
+                        #cv2.rectangle(frame_mask, (bsx, bsy), (bex, bey), (255, 255, 255), cv2.FILLED)
                         # frame mask of object
                         cv2.rectangle(frame_mask, (d_x,d_y), (d_x+d_w, d_y+d_h), (255, 255, 255), cv2.FILLED)
                     
@@ -141,6 +146,10 @@ class DetectYolo:
             for detect in detections:
                 (label, confidence, bbox) = detect
                 if confidence > g.args['confidence']:
+                    r = re.compile(g.args['detectpattern'])
+                    if not re.match(r, label):
+                       # utils.dim_print('object "{}" does not match "{}"'.format(label, g.args['detectpattern']))
+                        continue
                     box = bbox 
                     (centerX, centerY, width, height) = box
                     x = int(centerX - (width / 2))
@@ -182,14 +191,14 @@ class DetectYolo:
 
                         # work on displaying text properly
                         text = text.upper()
-                        delta = 5
+                        delta = 0
                         d_x = max (x-delta, 0)
                         d_y = max (y-delta, 0)
                         d_w = min (W, width+delta)
                         d_h = min (H, height+delta)
                         bsx, bsy, bex, bey = utils.write_text(frame=frame_b, text=text, x=d_x, y=d_y, W=W, H=H, adjust=True)
                         # frame mask of text
-                        cv2.rectangle(frame_mask, (bsx, bsy), (bex, bey), (255, 255, 255), cv2.FILLED)
+                        #cv2.rectangle(frame_mask, (bsx, bsy), (bex, bey), (255, 255, 255), cv2.FILLED)
                         # frame mask of object
                         cv2.rectangle(frame_mask, (d_x,d_y), (d_x+d_w, d_y+d_h), (255, 255, 255), cv2.FILLED)
                     

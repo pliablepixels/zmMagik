@@ -5,6 +5,7 @@ import dateparser
 import configargparse
 import numpy as np
 from datetime import datetime, timedelta
+import re
 
 
 import zmMagik_helpers.globals as g
@@ -41,6 +42,9 @@ def hist_match(source, template):
 
 def init_colorama():
     init()
+
+def secure_string(str):
+    return re.sub(r'(((pass)(?:word)?)|(auth)|(token))=([^&/?]*)',r'\1=***',str.lower())    
 
 def str2arr(str):
    ret = np.array(str.replace(' ',',').split(','),dtype=int).reshape(-1,2)

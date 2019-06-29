@@ -63,17 +63,18 @@ def blend_video(input_file=None, out_file=None, eid = None, mid = None, starttim
         'frames':[]
         }
 
-    print ('Blending: {}'.format(input_file))
+    print ('Blending: {}'.format(utils.secure_string(input_file)))
     
     vid = FVS.FileVideoStream(input_file)
     time.sleep(1)
     #vid = cv2.VideoCapture(input_file)
     cvobj = vid.get_stream_object()
+    if not cvobj.isOpened(): 
+        raise ValueError('Error reading video {}'.format(utils.secure_string(input_file)))
+
     total_frames_vid =  int(cvobj.get(cv2.CAP_PROP_FRAME_COUNT)) 
     vid.start()
-    if not cvobj.isOpened(): 
-        raise ValueError('Error reading video {}'.format(input_file))
-
+    
     if not g.orig_fps:
         orig_fps = max(1, (g.args['fps'] or int(cvobj.get(cv2.CAP_PROP_FPS))))
         g.orig_fps = orig_fps
@@ -125,6 +126,7 @@ def blend_video(input_file=None, out_file=None, eid = None, mid = None, starttim
     bar_blend_video = tqdm (total=total_frames_vid_blend, desc='Blend', miniters = 10)
 
     is_trailing = False
+    blend_frames_read = 0
     # first wait for delay seconds
     # will only come in if blend video exists, as in first iter it is 0
     # However, if blend wasn't created (no relevant frames), ignore delay
@@ -132,22 +134,38 @@ def blend_video(input_file=None, out_file=None, eid = None, mid = None, starttim
         frame_cnt = 0
         bar_new_video.set_description ('waiting for {}s'.format(delay))
         prev_good_frame_b = None
+        a = 0
+        b = 0
         while True:
-            if vid_blend is None:
-                frame_b = prev_good_frame_b
-            else:
+            if vid_blend.more():
                 frame_b = vid_blend.read()
                 if frame_b is None:
                     succ_b = False
                 else:
                     succ_b = True
-                if not  succ_b: 
-                    vid_blend = None
-                else:
+                    a = a + 1
+                    #print ('delay read: {}'.format(a))
+                    blend_frames_read = blend_frames_read + 1
                     prev_good_frame_b = frame_b
+            else:
+                succ_b = False
+                vid_blend = None
+            
+            # If we have reached the end of blend, but have a good last frame
+            # lets use it
+            if not succ_b and prev_good_frame_b:
+                frame_b = prev_good_frame_b
+                succ_b = True
+            
+            if not succ_b and not prev_good_frame_b:
+                break
+
             frame_cnt = frame_cnt + 1
             bar_blend_video.update(1)
             outf.write(frame_b)
+            blend_frame_written_count = blend_frame_written_count + 1
+            b = b + 1
+            #print ('delay write: {}'.format(b))
             if (delay * orig_fps < frame_cnt):
            # if (frame_cnt/orig_fps > delay):
                 #utils.dim_print('wait over')
@@ -157,6 +175,7 @@ def blend_video(input_file=None, out_file=None, eid = None, mid = None, starttim
     # now read new video along with blend
     bar_new_video.set_description ('New video')
     frame_cnt = 0
+   
     while True:
         if vid.more():
             frame = vid.read()
@@ -164,6 +183,9 @@ def blend_video(input_file=None, out_file=None, eid = None, mid = None, starttim
                 succ = False
             else:
                 succ = True
+        else:
+            frame = None
+            succ = False
                 
 
         #succ, frame = vid.read()
@@ -187,15 +209,11 @@ def blend_video(input_file=None, out_file=None, eid = None, mid = None, starttim
                     succ_b = False
                 else:
                     succ_b = True
-            #succ_b, frame_b = vid_blend.read()
-            if succ_b:
-                bar_blend_video.update(1)
-            else:
-                vid_blend = None
-            # frame_b is always resized
-
+                    bar_blend_video.update(1)
+                    blend_frames_read = blend_frames_read + 1
+           
         if not succ and not succ_b:
-                utils.dim_print ('both videos are done')
+                bar_blend_video.write ('both videos are done')
                 break
        
         elif succ and succ_b:
@@ -279,7 +297,10 @@ def blend_video(input_file=None, out_file=None, eid = None, mid = None, starttim
         if key& 0xFF == ord('c'):
             g.args['interactive']=False
 
-        if relevant or not g.args['relevantonly']:
+        # if we read a blend frame, merged frame will always be written
+        # if we don't have a blend frame, then we write new frame only if its relevant
+        # assuming we want relevant frames
+        if relevant or not g.args['relevantonly'] or succ_b:
             #print ("WRITING")
             outf.write(merged_frame)
             blend_frame_written_count = blend_frame_written_count + 1
@@ -304,19 +325,23 @@ def blend_video(input_file=None, out_file=None, eid = None, mid = None, starttim
     vid.stop()
     outf.release()
     if vid_blend: vid_blend.stop() 
+    print('\n')
     #input("Press Enter to continue...")
     if create_blend and blend_frame_written_count == 0:
         utils.fail_print('No relevant frames found, blend file not created. Will try next iteration')
         os.remove('new-blended-temp.mp4')
     else:
         rel = 'relevant ' if g.args['relevantonly'] else ''
-        utils.success_print ('{} total {}frames written to blend file'.format(blend_frame_written_count, rel))
-        try:
-            os.remove(blended_filename)
-        except:
-           pass
-        os.rename ('new-blended-temp.mp4', blend_filename)
-        utils.success_print('Blended file updated in {}'.format(blend_filename))
+        utils.success_print ('{} total {}frames written to blend file ({} read)'.format(blend_frame_written_count, rel, blend_frames_read))
+        if blend_frame_written_count:
+            try:
+                os.remove(blended_filename)
+            except:
+                pass
+            os.rename ('new-blended-temp.mp4', blend_filename)
+            utils.success_print('Blended file updated in {}'.format(blend_filename))
+        else:
+            utils.success_print ('No frames written this round, not updating blend file')
         g.json_out.append(set_frames)
 
     return False

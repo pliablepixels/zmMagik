@@ -108,7 +108,7 @@ def process_timeline():
         try:
             if g.args['blend']:
                 res = zmm_blend.blend_video(input_file = in_file, out_file = g.out_file, eid = event['Event']['Id'],mid = event['Event']['MonitorId'], starttime=event['Event']['StartTime'], delay=delay )
-                delay = delay + 2
+                delay = delay + g.args['blenddelay']
             elif g.args['annotate']:
                 res = zmm_annotate.annotate_video(input_file = in_file, out_file = g.out_file, eid = event['Event']['Id'],mid = event['Event']['MonitorId'], starttime=event['Event']['StartTime'] )
                 
@@ -140,6 +140,7 @@ ap.add_argument("--find",  help="image to look for (needs to be same size/orient
 ap.add_argument("--mask",  help="polygon points of interest within video being processed")
 ap.add_argument("--skipframes", help="how many frames to skip", type=int)
 ap.add_argument("--trailframes", help="how many frames to write after relevant frame", type=int, default=10)
+ap.add_argument("--blenddelay", help="how much time to wait in seconds before blending next event", type=int, default=2)
 ap.add_argument("--fps", help="fps of video, to get timing correct", type=int)
 ap.add_argument("--threshold", help="Only for background extraction. a number between 0 to 1 on accuracy threshold. 0.7 or above required", type=float_71, default=0.7)
 ap.add_argument("--confidence", help="Only for YOLO. a number between 0 to 1 on minimum confidence score", type=float_01, default=0.6)
@@ -167,7 +168,7 @@ ap.add_argument("--dumpjson", nargs='?',default=False,const=True, type=utils.str
 ap.add_argument("--annotate", nargs='?', const=True,default=False, type=utils.str2bool ,help = "annotates all videos in the time range. Only applicable if using --from --to or --eventid")
 
 ap.add_argument("--blend", nargs='?', const=True,default=False, type=utils.str2bool ,help = "overlay all videos in the time range. Only applicable if using --from --to or --eventid")
-
+ap.add_argument("--detectpattern",  help="which objects to detect (supports regex)", default=".*")
 ap.add_argument("--relevantonly", nargs='?', const=True,default=True, type=utils.str2bool ,help = "Only write frames that have detections")
 
 
@@ -229,7 +230,7 @@ else:
     if g.args['find']:
         res = zmm_search.search_video(input_file=g.args['input'], out_file=g.out_file, eid=g.args['eventid'], mid=None, starttime=None, delay=0)
     elif g.args['blend']:
-        res = zmm_blend.blend_video(input_file=g.args['input'], out_file=g.out_file, eid=g.args['eventid'], mid=None, starttime=None, delay=0)
+        res = zmm_blend.blend_video(input_file=g.args['input'], out_file=g.out_file, eid=g.args['eventid'], mid=None, starttime=None, delay=g.args['blenddelay'])
     elif g.args['annotate']:
         res = zmm_annotate.annotate_video(input_file=g.args['input'],  eid=g.args['eventid'], mid=None, starttime=None)
 

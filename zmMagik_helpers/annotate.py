@@ -67,7 +67,7 @@ def annotate_video(input_file=None,  eid = None, mid = None, starttime=None):
         'frames':[]
         }
 
-    print ('annotating: {}'.format(input_file))
+    print ('annotating: {}'.format(utils.secure_string(input_file)))
     
     #vid = cv2.VideoCapture(input_file)
     vid = FVS.FileVideoStream(input_file)
@@ -75,7 +75,7 @@ def annotate_video(input_file=None,  eid = None, mid = None, starttime=None):
     cvobj = vid.get_stream_object()
     vid.start()
     if not cvobj.isOpened(): 
-        raise ValueError('Error reading video {}'.format(input_file))
+        raise ValueError('Error reading video {}'.format(utils.secure_string(input_file)))
 
     if not g.orig_fps:
         orig_fps = max(1, (g.args['fps'] or int(cvobj.get(cv2.CAP_PROP_FPS))))
