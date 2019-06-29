@@ -137,7 +137,7 @@ def blend_video(input_file=None, out_file=None, eid = None, mid = None, starttim
         a = 0
         b = 0
         while True:
-            if vid_blend.more():
+            if vid_blend and vid_blend.more():
                 frame_b = vid_blend.read()
                 if frame_b is None:
                     succ_b = False
@@ -153,7 +153,7 @@ def blend_video(input_file=None, out_file=None, eid = None, mid = None, starttim
             
             # If we have reached the end of blend, but have a good last frame
             # lets use it
-            if not succ_b and prev_good_frame_b:
+            if not succ_b and prev_good_frame_b is not None:
                 frame_b = prev_good_frame_b
                 succ_b = True
             
@@ -163,13 +163,35 @@ def blend_video(input_file=None, out_file=None, eid = None, mid = None, starttim
             frame_cnt = frame_cnt + 1
             bar_blend_video.update(1)
             outf.write(frame_b)
+            frame_dummy= np.zeros_like(frame_b)
+            if g.args['display']:
+                x = 320
+                y = 240
+                r_frame_b = cv2.resize (frame_b, (x, y))
+                r_frame_dummy = cv2.resize (frame_dummy, (x,y))
+            
+                h1 = np.hstack((r_frame_dummy, r_frame_dummy))
+                h2 = np.hstack((r_frame_dummy, r_frame_b))
+                f = np.vstack((h1,h2))
+                cv2.imshow('display', f)
+ 
+            if g.args['interactive']:
+                key = cv2.waitKey(0)
+            
+            else:
+                key = cv2.waitKey(1)
+            if key& 0xFF == ord('q'):
+                exit(1)
+            if key& 0xFF == ord('c'):
+                g.args['interactive']=False
+
             blend_frame_written_count = blend_frame_written_count + 1
             b = b + 1
             #print ('delay write: {}'.format(b))
             if (delay * orig_fps < frame_cnt):
-           # if (frame_cnt/orig_fps > delay):
+        # if (frame_cnt/orig_fps > delay):
                 #utils.dim_print('wait over')
-              #  print ('DELAY={} ORIGFPS={} FRAMECNT={}'.format(delay, orig_fps, frame_cnt))
+            #  print ('DELAY={} ORIGFPS={} FRAMECNT={}'.format(delay, orig_fps, frame_cnt))
                 break
               
     # now read new video along with blend
