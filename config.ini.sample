@@ -18,6 +18,8 @@ display=False
 
 # Only extracts events that have at least one alarmed frame
 alarmonly=True
+# if alarmonly is true, will only get events with these many minimum alarmed frames
+minalarmframes=2
 
 # Writes frames only if the detection logic said it found something
 relevantonly=True
@@ -66,8 +68,6 @@ fontscale=0.8
 
 # First uses opencv background extraction to detect if an object is moving. If it is moving, then run yolo on it to make sure its something that is valid
 detection_type=mixed
-
-# objects to look for. See yolov3 coco classes for full list (total 80)
 detectpattern =  (person|car|motorbike|bus|truck|boat)
 
 #detection_type=yolo_extraction

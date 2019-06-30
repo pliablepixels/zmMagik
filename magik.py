@@ -63,7 +63,7 @@ def process_timeline():
     if g.args['objectonly']:
         url = url+'/Notes REGEXP:detected:'
     if g.args['alarmonly']:
-        url = url+'/AlarmFrames >=:1'
+        url = url+'/AlarmFrames >=:'+str(g.args['minalarmframes'])
     if g.args['blend'] and len(g.mon_list) > 1:
         utils.bold_print('You have chosen to blend events from multiple monitors. Results may be poor. Blending should typically be done on a fixed view (single monitor)')
     for mon in g.mon_list:
@@ -138,7 +138,7 @@ ap.add_argument("-c","--config",is_config_file=True, help="configuration file")
 ap.add_argument("-i", "--input",  help="input video to search")
 ap.add_argument("--find",  help="image to look for (needs to be same size/orientation as in video)")
 ap.add_argument("--mask",  help="polygon points of interest within video being processed")
-ap.add_argument("--skipframes", help="how many frames to skip", type=int)
+ap.add_argument("--skipframes", help="how many frames to skip", type=int, default=1)
 ap.add_argument("--trailframes", help="how many frames to write after relevant frame", type=int, default=10)
 ap.add_argument("--blenddelay", help="how much time to wait in seconds before blending next event", type=int, default=2)
 ap.add_argument("--fps", help="fps of video, to get timing correct", type=int)
@@ -183,6 +183,8 @@ ap.add_argument("--download", nargs='?',const=True,type=utils.str2bool, help = "
 ap.add_argument("--display", nargs='?',const=True,default=False,type=utils.str2bool ,help = "displays processed frames. Only applicable if using --blend")
 ap.add_argument("--objectonly", nargs='?',const=True,default=False,type=utils.str2bool,help = "Only process events where objects are detected. Only applicable if using --blend")
 ap.add_argument("--alarmonly", nargs='?',const=True,default=False,type=utils.str2bool ,help = "Only process events which have at least 1 alarmed frame")
+ap.add_argument("--minalarmframes", help="how many alarmed frames for an event to be selected. Applies only if alarmonly is used", type=int, default=1)
+
 ap.add_argument("--balanceintensity", nargs='?',const=True,default=False,type=utils.str2bool ,help = "If enabled, will try and match frame intensities - the darker frame will be aligned to match the brighter one. May be useful for day to night transitions, or not :-p. Works with --blend")
 
 
