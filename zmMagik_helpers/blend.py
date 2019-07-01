@@ -357,7 +357,7 @@ def blend_video(input_file=None, out_file=None, eid = None, mid = None, starttim
         utils.success_print ('{} total {}frames written to blend file ({} read)'.format(blend_frame_written_count, rel, blend_frames_read))
         if blend_frame_written_count:
             try:
-                os.remove(blended_filename)
+                os.remove(blend_filename)
             except:
                 pass
             os.rename ('new-blended-temp.mp4', blend_filename)
