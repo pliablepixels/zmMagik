@@ -184,6 +184,7 @@ ap.add_argument("--display", nargs='?',const=True,default=False,type=utils.str2b
 ap.add_argument("--objectonly", nargs='?',const=True,default=False,type=utils.str2bool,help = "Only process events where objects are detected. Only applicable if using --blend")
 ap.add_argument("--alarmonly", nargs='?',const=True,default=False,type=utils.str2bool ,help = "Only process events which have at least 1 alarmed frame")
 ap.add_argument("--minalarmframes", help="how many alarmed frames for an event to be selected. Applies only if alarmonly is used", type=int, default=1)
+ap.add_argument("--duration", help="how long (in seconds) to make the video", type=int, default=0)
 
 ap.add_argument("--balanceintensity", nargs='?',const=True,default=False,type=utils.str2bool ,help = "If enabled, will try and match frame intensities - the darker frame will be aligned to match the brighter one. May be useful for day to night transitions, or not :-p. Works with --blend")
 

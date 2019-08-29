@@ -63,6 +63,7 @@ class DetectYolo:
                     scores = detection[5:]
                     classID = np.argmax(scores)
                     confidence = scores[classID]
+                    label = self.labels[classID]
                     if confidence > g.args['confidence']:
                         r = re.compile(g.args['detectpattern'])
                         if not re.match(r, label):
@@ -74,7 +75,7 @@ class DetectYolo:
                         y = int(centerY - (height / 2))
                         boxes.append([x, y, int(width), int(height)])
                         confidences.append(float(confidence))
-                        labels.append(self.labels[classID])
+                        labels.append(label)
 
             idxs = cv2.dnn.NMSBoxes(boxes, confidences, g.args["confidence"], 0.3)
             if len(idxs) > 0:
