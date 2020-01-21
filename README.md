@@ -108,6 +108,7 @@ As of today, OpenCV DNN doesn't support GPU acceleration for NVIDA (no idea abou
 
 Simply put:
 * Compile it with GPU
+* Only builds of darknet from 2019-10-25 or later should be used with zmMagik due to a change in the darknet data structures
 * Make sure it is actually using GPU
 * then set `gpu=True` and `darknet_lib=<path/to/filename of gpu accelerated so>`
 * If you need help compiling darknet for GPU and CUDA 10.x, see [simpleYolo](https://github.com/pliablepixels/simpleYolo)
