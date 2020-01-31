@@ -8,19 +8,19 @@ As of today, it lets you:
 
 * **Blend**  multiple events to quickly see how the day went. Imagine compressing 24 hours of video into 1 minute with object overlays. Gadzooks!
 
-<sub><sup>this video is blended from 2 days worth of video. Generated using `python ./magik.py -c config.ini  --monitors 11 --blend --display --download=False --from "2 days ago"`</sup></sub>
+<sub><sup>this video is blended from 2 days worth of video. Generated using `python3 ./magik.py -c config.ini  --monitors 11 --blend --display --download=False --from "2 days ago"`</sup></sub>
 
 <img src='https://github.com/pliablepixels/zmMagik/blob/master/sample/1.gif' width=400px />
 
 * **Annotate** recorded ZoneMinder videos. Holy Batman!
 
-<sub><sup>generated using `python ./magik.py -c config.ini --eventid 44063 --dumpjson --annotate --display --download=False --onlyrelevant=False --skipframes=1`</sup></sub>
+<sub><sup>generated using `python3 ./magik.py -c config.ini --eventid 44063 --dumpjson --annotate --display --download=False --onlyrelevant=False --skipframes=1`</sup></sub>
 
 <img src='https://github.com/pliablepixels/zmMagik/blob/master/sample/3.gif' width=400px>
 
 * **Find** an image fragment inside multiple events. For example, someone stole your amazon package. Crop a picture of an event with that package and then ask zmMagik to search for events where this package went missing. Great Krypton!
 
-<sub><sup>generated using `python ./magik.py -c config.ini --find trash.jpg --dumpjson  --display --download=False --from "8am" --to "3pm" --monitors 11`</sup></sub>
+<sub><sup>generated using `python3 ./magik.py -c config.ini --find trash.jpg --dumpjson  --display --download=False --from "8am" --to "3pm" --monitors 11`</sup></sub>
 
 <img src='https://github.com/pliablepixels/zmMagik/blob/master/sample/2.jpg' width=400px />
 
@@ -45,8 +45,8 @@ Installation
 # needs python3, so you may need to use pip3 if you have 2.x as well
 git clone https://github.com/pliablepixels/zmMagik
 cd zmMagik
-# you may need to do sudo -H pip instead for below, if you get permission errors
-pip install -r requirements.txt
+# you may need to do sudo -H pip3 instead for below, if you get permission errors
+pip3 install -r requirements.txt
 ```
 
 If you are using yolo extraction, you also need these files and make sure your config variables point to them
@@ -60,18 +60,18 @@ wget https://raw.githubusercontent.com/pjreddie/darknet/master/data/coco.names
 Examples
 ---------
 
-General note: do a `python ./zmMagik -h` to see all options. Remember, you can stuff in regularly used options in a config file and override on CLI as you need. Much easier.
+General note: do a `python3 ./zmMagik -h` to see all options. Remember, you can stuff in regularly used options in a config file and override on CLI as you need. Much easier.
 
 * Create a blended event for monitor 11 in specified time range. config.ini has your ZM usename/password/portal etc so you don't need to type it in every time
 
 ```bash
-python ./magik.py --monitors=11 --from "yesterday, 7am" --to "today, 10am" --blend -c config.ini
+python3 ./magik.py --monitors=11 --from "yesterday, 7am" --to "today, 10am" --blend -c config.ini
 ```
 
 * Search when an object (image) went missing:
 
 ```bash
-python ./magik.py --monitors=7 --present=False --from "today, 7am" --to "today, 7pm" --find "amazonpackage.jpg" -c config.ini
+python3 ./magik.py --monitors=7 --present=False --from "today, 7am" --to "today, 7pm" --find "amazonpackage.jpg" -c config.ini
 ```
 
 Note that `amazonpackage.jpg` needs to be the same dimensions/orientation as in the events it will look into. Best way to do this is to load up ZM, find the package, crop it and use it.
@@ -131,14 +131,14 @@ height=416
 
   * Here is a practical comparison. I ran a blend operation on my driveway camera (modect) for a full day's worth of alarmed events. I used 'mixed' mode, which first used openCV background subtraction and then YOLO if the first mode found anything. This was to be fair to the CPU stats when compared. It grabbed a total of 27 video events:
   ```
-  python ./magik.py --blend --from "1 day ago"  --monitors 8 -c ./config.ini --gpu=True --alarmonly=True --skipframes=1
+  python3 ./magik.py --blend --from "1 day ago"  --monitors 8 -c ./config.ini --gpu=True --alarmonly=True --skipframes=1
 
   Total time: 250.72s
   ```
 
   I then ran it without GPU: (Note that I have `libopenblas-dev liblapack-dev libblas-dev` configured with OpenCV to improve CPU performance a lot)
   ```
-  python ./magik.py --blend --from "1 day ago"  --monitors 8 -c ./config.ini --gpu=False --alarmonly=True --skipframes=1
+  python3 ./magik.py --blend --from "1 day ago"  --monitors 8 -c ./config.ini --gpu=False --alarmonly=True --skipframes=1
 
   Total time: 1234.77s
   ```
