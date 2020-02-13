@@ -50,6 +50,8 @@ cd zmMagik
 pip3 install -r requirements.txt
 ```
 
+Note that this package also needs OpenCV which is not installed by the above step by default. This is because you may have a GPU and may want to use GPU support. If not, pip is fine. See [this page](https://zmeventnotification.readthedocs.io/en/latest/guides/hooks.html#opencv-install) on how to install OpenCV
+
 If you are using yolo extraction, you also need these files and make sure your config variables point to them
 ```
 wget https://raw.githubusercontent.com/pjreddie/darknet/master/cfg/yolov3.cfg
