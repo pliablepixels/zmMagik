@@ -121,8 +121,9 @@ def blend_video(input_file=None, out_file=None, eid = None, mid = None, starttim
     utils.dim_print ('fps={}, skipping {} frames'.format(orig_fps, fps_skip))
     utils.dim_print ('delay for new video is {}s'.format(delay))
 
-    bar_new_video = tqdm(total=total_frames_vid, desc='New video', miniters = 10)
-    bar_blend_video = tqdm (total=total_frames_vid_blend, desc='Blend', miniters = 10)
+    if g.args['show_progress']:
+        bar_new_video = tqdm(total=total_frames_vid, desc='New video', miniters = 10)
+        bar_blend_video = tqdm (total=total_frames_vid_blend, desc='Blend', miniters = 10)
 
     is_trailing = False
     blend_frames_read = 0
@@ -131,7 +132,8 @@ def blend_video(input_file=None, out_file=None, eid = None, mid = None, starttim
     # However, if blend wasn't created (no relevant frames), ignore delay
     if delay and not create_blend:
         frame_cnt = 0
-        bar_new_video.set_description ('waiting for {}s'.format(delay))
+        if g.args['show_progress']:
+            bar_new_video.set_description ('waiting for {}s'.format(delay))
         prev_good_frame_b = None
         a = 0
         b = 0
@@ -160,7 +162,8 @@ def blend_video(input_file=None, out_file=None, eid = None, mid = None, starttim
                 break
 
             frame_cnt = frame_cnt + 1
-            bar_blend_video.update(1)
+            if g.args['show_progress']:
+                bar_blend_video.update(1)
             outf.write(frame_b)
             frame_dummy= np.zeros_like(frame_b)
             if g.args['display']:
@@ -194,7 +197,8 @@ def blend_video(input_file=None, out_file=None, eid = None, mid = None, starttim
                 break
               
     # now read new video along with blend
-    bar_new_video.set_description ('New video')
+    if g.args['show_progress']:
+        bar_new_video.set_description ('New video')
     frame_cnt = 0
    
     while True:
@@ -212,7 +216,8 @@ def blend_video(input_file=None, out_file=None, eid = None, mid = None, starttim
         #succ, frame = vid.read()
         
         frame_cnt = frame_cnt + 1
-        bar_new_video.update(1)
+        if g.args['show_progress']:
+            bar_new_video.update(1)
 
         if frame_cnt % fps_skip:
             continue
@@ -230,11 +235,13 @@ def blend_video(input_file=None, out_file=None, eid = None, mid = None, starttim
                     succ_b = False
                 else:
                     succ_b = True
-                    bar_blend_video.update(1)
+                    if g.args['show_progress']:
+                        bar_blend_video.update(1)
                     blend_frames_read = blend_frames_read + 1
            
         if not succ and not succ_b:
-                bar_blend_video.write ('both videos are done')
+                if g.args['show_progress']:
+                    bar_blend_video.write ('both videos are done')
                 break
        
         elif succ and succ_b:
@@ -278,11 +285,13 @@ def blend_video(input_file=None, out_file=None, eid = None, mid = None, starttim
             merged_frame, foreground_a, frame_mask, relevant, boxed_frame = det.detect(frame, frame_b, frame_cnt, orig_fps, starttime, set_frames)
             #print ('RELEVANT={}'.format(relevant))
             if relevant and g.args['detection_type'] == 'mixed':
-                bar_new_video.set_description('YOLO running')
+                if g.args['show_progress']:
+                    bar_new_video.set_description('YOLO running')
                 #utils.dim_print('Adding YOLO, found relevance in backgroud motion')
                 merged_frame, foreground_a, frame_mask, relevant, boxed_frame = det2.detect(frame, frame_b, frame_cnt, orig_fps, starttime, set_frames)  
                 #print ('YOLO RELEVANT={}'.format(relevant))
-                bar_new_video.set_description('New video')        
+                if g.args['show_progress']:
+                    bar_new_video.set_description('New video')        
       
             if relevant:
                 is_trailing = True
@@ -331,7 +340,8 @@ def blend_video(input_file=None, out_file=None, eid = None, mid = None, starttim
             if trail_frames > g.args['trailframes']: 
                 start_trailing = False
             else:
-                bar_new_video.set_description('Trailing frame')
+                if g.args['show_progress']:
+                    bar_new_video.set_description('Trailing frame')
                # bar_new_video.write('trail frame: {}'.format(trail_frames))
                 outf.write(merged_frame)
                 blend_frame_written_count = blend_frame_written_count + 1
@@ -340,9 +350,9 @@ def blend_video(input_file=None, out_file=None, eid = None, mid = None, starttim
             pass
         
    
-
-    bar_blend_video.close()
-    bar_new_video.close()
+    if g.args['show_progress']:
+        bar_blend_video.close()
+        bar_new_video.close()
     vid.stop()
     outf.release()
     if vid_blend: vid_blend.stop() 

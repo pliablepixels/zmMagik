@@ -186,6 +186,10 @@ ap.add_argument("--fontscale",help = "Size of font scale (1, 1.5 etc). Only appl
 ap.add_argument("--download", nargs='?',const=True,type=utils.str2bool, help = "Downloads remote videos first before analysis. Seems some openCV installations have problems with remote downloads", default=True)
 
 ap.add_argument("--display", nargs='?',const=True,default=False,type=utils.str2bool ,help = "displays processed frames. Only applicable if using --blend")
+
+ap.add_argument("--show_progress", nargs='?',const=True,default=True,type=utils.str2bool ,help = "Shows progress bars")
+
+
 ap.add_argument("--objectonly", nargs='?',const=True,default=False,type=utils.str2bool,help = "Only process events where objects are detected. Only applicable if using --blend")
 ap.add_argument("--alarmonly", nargs='?',const=True,default=False,type=utils.str2bool ,help = "Only process events which have at least 1 alarmed frame")
 ap.add_argument("--minalarmframes", help="how many alarmed frames for an event to be selected. Applies only if alarmonly is used", type=int, default=1)

@@ -109,8 +109,8 @@ def annotate_video(input_file=None,  eid = None, mid = None, starttime=None):
     start_time = time.time()
     utils.dim_print ('fps={}, skipping {} frames'.format(orig_fps, fps_skip))
     
-
-    bar_annotate_video = tqdm (total=total_frames, desc='annotating')
+    if g.args['show_progress']:
+        bar_annotate_video = tqdm (total=total_frames, desc='annotating')
 
     frame_cnt = 0
     while True:
@@ -129,7 +129,8 @@ def annotate_video(input_file=None,  eid = None, mid = None, starttime=None):
         frame_cnt = frame_cnt + 1
 
         if not frame_cnt % 10:
-            bar_annotate_video.update(10)
+            if g.args['show_progress']:
+                bar_annotate_video.update(10)
             
 
         if frame_cnt % fps_skip:
@@ -143,10 +144,12 @@ def annotate_video(input_file=None,  eid = None, mid = None, starttime=None):
         frame_b = frame.copy()
         merged_frame, foreground_a, frame_mask, relevant, boxed_frame = det.detect(frame, frame_b, frame_cnt, orig_fps, starttime, set_frames)
         if relevant and g.args['detection_type'] == 'mixed':
-            bar_annotate_video.set_description('YOLO running')
+            if g.args['show_progress']:
+                bar_annotate_video.set_description('YOLO running')
             #utils.dim_print('Adding YOLO, found relevance in backgroud motion')
             merged_frame, foreground_a, frame_mask, relevant, boxed_frame = det2.detect(frame, frame_b, frame_cnt, orig_fps, starttime, set_frames)  
-            bar_annotate_video.set_description('annotating')        
+            if g.args['show_progress']:
+                bar_annotate_video.set_description('annotating')        
       
         if g.args['display']:
                 x = 320
@@ -187,8 +190,8 @@ def annotate_video(input_file=None,  eid = None, mid = None, starttime=None):
             pass
         
    
-
-    bar_annotate_video.close()
+    if g.args['show_progress']:
+        bar_annotate_video.close()
     vid.stop()
     outf.release()
 

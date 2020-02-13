@@ -8,6 +8,12 @@ username=admin
 password=password
 portal=https://server/zm
 
+#If True, will first download videos and then locally process
+download=True
+
+#If True, will show progress bars
+show_progress=False
+
 # If True, only extract events that have object detection previously
 # identified using zmeventserver machine learning hooks
 objectonly=False

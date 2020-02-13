@@ -22,6 +22,7 @@ class DetectBackground:
         # read https://docs.opencv.org/3.3.0/d2/d55/group__bgsegm.html#gae561c9701970d0e6b35ec12bae149814
 
         try:
+      
             self.fgbg = cv2.bgsegm.createBackgroundSubtractorMOG(history=self.history, nmixtures=5, backgroundRatio=0.7, noiseSigma=0)
         except AttributeError as error:
             print ('It looks like your OpenCV version does not include bgsegm. Switching to createBackgroundSubtractorMOG2')

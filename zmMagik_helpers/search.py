@@ -60,7 +60,8 @@ def search_video(input_file=None, out_file=None, eid = None, mid = None):
     utils.dim_print ('fps={}, skipping {} frames, total frames={}'.format(orig_fps, fps_skip, total_frames))
     utils.dim_print ('threshold={}, search type=if {}'.format(g.args['threshold'], det_type))
     frame_cnt = 0
-    bar = tqdm(total=total_frames) 
+    if g.args['show_progress']:
+        bar = tqdm(total=total_frames) 
     
     # now loop through the input video
     while True:
@@ -69,7 +70,8 @@ def search_video(input_file=None, out_file=None, eid = None, mid = None):
         
             break
         frame_cnt = frame_cnt + 1
-        bar.update(1)
+        if g.args['show_progress']:
+            bar.update(1)
         if frame_cnt % fps_skip: 
             # skip frames based on our skip frames count. We don't really need to process every frame
             continue
@@ -120,7 +122,8 @@ def search_video(input_file=None, out_file=None, eid = None, mid = None):
         frame_cnt = frame_cnt+1
     # all done
     end_time = time.time()
-    bar.close()
+    if g.args['show_progress']:
+        bar.close()
     # dump matches
     if frame_found:
         if g.args['present']:
@@ -148,7 +151,8 @@ def search_video(input_file=None, out_file=None, eid = None, mid = None):
         pass
 
     print ('\nTime: {:.2}s'.format(end_time-start_time))
-    bar.close()
+    if g.args['show_progress']:
+        bar.close()
     vid.release()
     if out: out.release()
 

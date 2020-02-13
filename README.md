@@ -1,9 +1,17 @@
-What
-----
-zmMagik will be a list of growing foo-magic things you can do with video images that ZM stores. _Probably..._
+## What
+zmMagik will be a list of growing foo-magic things you can do with video images that ZM stores. _probably..._
 
-Features
----------
+## Why
+
+* I came home one day to see my trash can cover went missing. I thought it would be fun to write a tool that could search through my events to let me know when it went missing. Yep, it started with trash talking
+
+* Andy posted an example of how other vendors blend multiple videos to give a common view quickly. I thought it would be fun to try
+
+* One thing leads to another and I keep doing new things to learn new things..
+
+
+## Features
+
 As of today, it lets you:
 
 * **Blend**  multiple events to quickly see how the day went. Imagine compressing 24 hours of video into 1 minute with object overlays. Gadzooks!
@@ -24,22 +32,15 @@ As of today, it lets you:
 
 <img src='https://github.com/pliablepixels/zmMagik/blob/master/sample/2.jpg' width=400px />
 
-Why
-----
-* I came home one day to see my trash can cover went missing. I thought it would be fun to write a tool that could search through my events to let me know when it went missing. Yep, it started with trash talking
 
-* Andy posted an example of how other vendors blend multiple videos to give a common view quickly. I thought it would be fun to try
+## Limitations
 
-* One thing leads to another and I keep doing new things to learn new things..
-
-Limitations
-------------
 * Only works with video mp4 files. Did not bother adding support for JPEG store
 * Very Beta. Also, if you don't have a GPU, make sure you play with the flags to optimize skipframes, detection mode, resize
 * Multi-server most likely won't work
 
-Installation
-------------
+## Installation
+
 
 ```bash
 # needs python3, so you may need to use pip3 if you have 2.x as well
@@ -57,8 +58,8 @@ wget https://raw.githubusercontent.com/pjreddie/darknet/master/data/coco.names
 ```
 
 
-Examples
----------
+## Examples
+
 
 General note: do a `python3 ./zmMagik -h` to see all options. Remember, you can stuff in regularly used options in a config file and override on CLI as you need. Much easier.
 
@@ -77,34 +78,37 @@ python3 ./magik.py --monitors=7 --present=False --from "today, 7am" --to "today,
 Note that `amazonpackage.jpg` needs to be the same dimensions/orientation as in the events it will look into. Best way to do this is to load up ZM, find the package, crop it and use it.
 
 
-FAQ
------
-* How do I use GPU acceleration? 
-  * See GPU section below
-* What is "mixed" background extraction?
-  * This is the default mode. It uses the very fast openCV background subtraction to detect motion, and then uses YOLO to refine the search to see if it really is an object worth marking. Use this mode by default, unless you need more speed, in which case, use "backround_extraction"
+## FAQ
 
-* Using "background_extraction" mode isn't that great
-  * Yes, that's why you should use "mixed"
-  * Some tips:
-    * Use masks to restrict area
-    * Use `--display` to see what is going on, look at frame masks and output
-    * Try changing the learning rate of the background extractor
-    * See if using a different Background extractor for `fgbg` in `globals.py` helps you (read [this](https://docs.opencv.org/3.3.0/d2/d55/group__bgsegm.html#gae561c9701970d0e6b35ec12bae149814))
-    * Fiddle with kernel_clean and kernel_fill in `globals.py`
-* Using "Yolo" or "mixed" extraction mode is great, but it overlays complete rectangles
-  * Yes, unlike "background_extraction" yolo doesn't report a mask of the object shape, only a bounding box
-  * I'll add masked R-CNN too, you can try that (will be slower than Yolo)
-  * Maybe you can suggest a smarter way to overlay the rectangle using some fancy operators that will act like its blending?
+### How do I use GPU acceleration? 
+See GPU section below
 
-* `find` doesn't find my image
-  * Congratulations, maybe no one stole your amazon package
+### What is "mixed" background extraction?
+This is the default mode. It uses the very fast openCV background subtraction to detect motion, and then uses YOLO to refine the search to see if it really is an object worth marking. Use this mode by default, unless you need more speed, in which case, use "backround_extraction"
+
+### Using "background_extraction" mode isn't that great...
+Yes, that's why you should use "mixed"
+Some tips:
+  * Use masks to restrict area
+  * Use `--display` to see what is going on, look at frame masks and output
+  * Try changing the learning rate of the background extractor
+  * See if using a different Background extractor for `fgbg` in `globals.py` helps you (read [this](https://docs.opencv.org/3.3.0/d2/d55/group__bgsegm.html#gae561c9701970d0e6b35ec12bae149814))
+  * Fiddle with kernel_clean and kernel_fill in `globals.py`
+
+### Using "Yolo" or "mixed" extraction mode is great, but it overlays complete rectangles
+Yes, unlike "background_extraction" yolo doesn't report a mask of the object shape, only a bounding box/ I'll eventually add masked R-CNN too, you can try that (will be slower than Yolo)
+Maybe you can suggest a smarter way to overlay the rectangle using some fancy operators that will act like its blending?
+
+### `find` doesn't find my image
+Congratulations, maybe no one stole your amazon package
   * Make sure image you are looking for is not rotated/resized/etc. needs to be original dimensions
 
+### GPU FAQ
 
-GPU FAQ
--------
+### What is done in the GPU?
+Only the DNN object detection part (Yolo). magik uses various image functions like background extraction, merging, resizes etc. that are _not_ done in the GPU. As of today, the OpenCV python CUDA wrapper documentation is dismal and unlike what many people think, where its just a `.cuda` difference in API calls, the flow/parameters also differ. See [this](https://jamesbowley.co.uk/accelerating-opencv-with-cuda-streams-in-python/) for example. I may eventually  get to wrapping all the other non DNN parts into their CUDA equivalent functions, but right now, I'm disinclined to do it. I'll be happy to accept PRs.
 
+#### How do I get GPU working?
 As of Feb 2020, OpenCV 4.2 is released, which supports CUDA for DNN.
 You have two options:
 
