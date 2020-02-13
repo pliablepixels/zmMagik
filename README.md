@@ -104,15 +104,24 @@ FAQ
 
 GPU FAQ
 -------
-As of today, OpenCV DNN doesn't support GPU acceleration for NVIDA (no idea about non NVIDIA). This may change soon with a [work in progress contribution](https://github.com/opencv/opencv/pull/14827) to get it working with CUDA. Till that happens, we need to directly use a GPU enabled version for YoloV3. I went with the [darknet fork maintained by AlexyAB](https://github.com/AlexeyAB/darknet)
+
+As of Feb 2020, OpenCV 4.2 is released, which supports CUDA for DNN.
+You have two options:
+
+- (RECOMMENDED) Compile and install OpenCV 4.2+ and enable CUDA support. See [this](https://zmeventnotification.readthedocs.io/en/latest/guides/hooks.html#opencv-install) guide on how to do that.
+
+- (LEGACY) Or, compile darknet directly with GPU support. If you go this route, I'd suggest you build the [darknet fork maintained by AlexyAB](https://github.com/AlexeyAB/darknet) as it is better maintained.
+  - If you need help compiling darknet for GPU and CUDA 10.x, see [simpleYolo](https://github.com/pliablepixels/simpleYolo). Do NOT use darknet lib directly for a CPU compiled library. It is terribly slow (in my tests, OpenCV was around 50x faster)
+  - Only builds of darknet from 2019-10-25 or later should be used with zmMagik due to a change in the darknet data structures
+
+You'd only want to compile darknet directly if your GPU/CUDA version is not compatible with OpenCV 4.2. For all other cases, go with OpenCV 4.2 (don't install from a pip package, GPU is not enabled)
+
 
 Simply put:
-* Compile it with GPU
-* Only builds of darknet from 2019-10-25 or later should be used with zmMagik due to a change in the darknet data structures
+* Either compile OpenCV 4.2+ from source correctly or go the direct darknet route as described before
 * Make sure it is actually using GPU
-* then set `gpu=True` and `darknet_lib=<path/to/filename of gpu accelerated so>`
-* If you need help compiling darknet for GPU and CUDA 10.x, see [simpleYolo](https://github.com/pliablepixels/simpleYolo)
-* Do NOT use darknet lib directly for a CPU compiled library. It is terribly slow (in my tests, OpenCV was around 50x faster)
+* then set `gpu=True` and either specify `use_opencv_dnn_cua` to `True` or set `darknet_lib=<path/to/filename of gpu accelerated so>`
+* 
 
 * How much GPU memory do I need?
   * The YoloV3 model config I use takes up 1.6GB of GPU memory

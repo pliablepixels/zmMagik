@@ -28,10 +28,16 @@ relevantonly=True
 # if you selected mixed or extract_background mode
 minblendarea=500
 
-# If you use GPU, then you need to have a compatible GPU
-# also, you need to have darknet compiled in GPU mode
+# If you use GPU, you have two options:
+
+# Use OpenCV's new GPU DNN support (requires OpenCV 4.2+)
+# or, you need to have darknet compiled in GPU mode
 # and point darknet_lib to where that compiled SO is placed
-gpu=True
+
+gpu=False
+
+#If true, will ignore darknet_lib
+use_opencv_dnn_cuda=True 
 darknet_lib=/home/pp/fiddle/zmMagik/libdarknet_gpu.so
 
 # If you want detections to lie inside a specified polygon

@@ -20,24 +20,41 @@ class IMAGE(Structure):
 
 class DetectYolo:
 
-    def __init__(self,configPath=None, weightPath=None, labelsPath=None, darknetLib=None, kernel_fill=3):
+    def __init__(self,configPath=None, weightPath=None, labelsPath=None, kernel_fill=3):
 
-        if g.args['gpu']:
-            utils.success_print('Using GPU model for YOLO')
+        if g.args['gpu'] and not g.args['use_opencv_dnn_cuda']:
+
+            utils.success_print('Using Darknet GPU model for YOLO')
             utils.success_print('If you run out of memory, please tweak yolo.cfg')
-            self.m = yolo.SimpleYolo(configPath=configPath,
-                    weightPath=weightPath,
-                    darknetLib=darknetLib,
-                    labelsPath=labelsPath,
-                    useGPU=True)
+
+            if not g.args['use_opencv_dnn_cuda']:
+                self.m = yolo.SimpleYolo(configPath=configPath,
+                        weightPath=weightPath,
+                        darknetLib=g.args['darknet_lib'],
+                        labelsPath=labelsPath,
+                        useGPU=True)
+
         else:
-            utils.success_print('Using CPU/OpenCV model for YOLO')
+            utils.success_print('Using OpenCV model for YOLO')
+            utils.success_print('If you run out of memory, please tweak yolo.cfg')
+
             self.net = cv2.dnn.readNetFromDarknet(configPath, weightPath)
             self.labels = open(labelsPath).read().strip().split("\n")
             np.random.seed(42)
             self.colors = np.random.randint(
                 0, 255, size=(len(self.labels), 3), dtype="uint8")
             self.kernel_fill = np.ones((kernel_fill,kernel_fill),np.uint8)
+
+            if g.args['use_opencv_dnn_cuda'] and g.args['gpu']:
+                (maj,minor,patch) = cv2.__version__.split('.')
+                min_ver = int (maj+minor)
+                if min_ver < 42:
+                    utils.fail_print('Not setting CUDA backend for OpenCV DNN')
+                    utils.dim_print ('You are using OpenCV version {} which does not support CUDA for DNNs. A minimum of 4.2 is required. See https://www.pyimagesearch.com/2020/02/03/how-to-use-opencvs-dnn-module-with-nvidia-gpus-cuda-and-cudnn/ on how to compile and install openCV 4.2'.format(cv2.__version__))
+                else:
+                    utils.success_print ('Setting CUDA backend for OpenCV. If you did not set your CUDA_ARCH_BIN correctly during OpenCV compilation, you will get errors during detection related to invalid device/make_policy')
+                    self.net.setPreferableBackend(cv2.dnn.DNN_BACKEND_CUDA)
+                    self.net.setPreferableTarget(cv2.dnn.DNN_TARGET_CUDA)
 
         utils.success_print('YOLO initialized')
         
@@ -50,8 +67,8 @@ class DetectYolo:
         labels = []
         boxed_frame = frame.copy()
 
-        if not g.args['gpu']:
-            # we use OpenCV's optimized CPU code
+        if not g.args['gpu'] or g.args['use_opencv_dnn_cuda']:
+            # we use OpenCV's optimized CPU or GPU code
             ln = self.net.getLayerNames()
             ln = [ln[i[0] - 1] for i in self.net.getUnconnectedOutLayers()]
             blob = cv2.dnn.blobFromImage(
@@ -84,7 +101,7 @@ class DetectYolo:
                     # extract the bounding box coordinates
                     (x, y) = (boxes[i][0], boxes[i][1])
                     (width, height) = (boxes[i][2], boxes[i][3])
-                    label = self.labels[i]
+                    label = labels[i]
                     confidence = confidences[i]
 
                     pts = Polygon([[x,y], [x+width,y], [x+width, y+height], [x,y+height]])
@@ -135,12 +152,14 @@ class DetectYolo:
                         cv2.rectangle(frame_mask, (d_x,d_y), (d_x+d_w, d_y+d_h), (255, 255, 255), cv2.FILLED)
                     
                        
-        else:  # GPU code
+        else:  # darknet GPU code
             # we use darknet directly 
             # if you haven't conmpiled darknet in gpu mode, you are going
             # to see terrible performance
             im = self.m.array_to_image(frame)
+            
             detections = self.m.detect_image(im)
+          
             boxes = []
             confidences = []
             labels =[]

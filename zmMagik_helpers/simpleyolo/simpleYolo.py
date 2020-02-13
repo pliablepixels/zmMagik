@@ -25,9 +25,12 @@ import math
 import random
 import os
 
+
 class SimpleYolo:
 
     def __init__(self, configPath=None, weightPath=None, labelsPath=None, darknetLib="./libdarknet.so", useGPU=False):
+
+       
         self.hasGPU = useGPU
         self.associate_with_c_lib(darknetLib)
         self.threshold = 0.25
@@ -142,6 +145,8 @@ class SimpleYolo:
         Performs the meat of the detection
         """
         #pylint: disable= C0321
+
+       
         image = image.encode("ascii")
         im = self.load_image(image, 0, 0)
         ret = self.detect_image(im, thresh, hier_thresh, nms, debug)
@@ -162,7 +167,7 @@ class SimpleYolo:
         res = []
         for j in range(num):
             for i in range(len(self.classNames)):
-                if dets[j].prob[i] > 0:
+                if  dets[j].prob[i] > 0:
                     b = dets[j].bbox
                     nameTag = self.classNames[i]
                     res.append((nameTag, dets[j].prob[i], (b.x, b.y, b.w, b.h)))

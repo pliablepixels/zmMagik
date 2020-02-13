@@ -157,7 +157,12 @@ ap.add_argument("--config_file",  help="Config file for ML based detection with 
 ap.add_argument("--weights_file",  help="Weights file for ML based detection with full path")
 ap.add_argument("--labels_file",  help="labels file for ML based detection with full path")
 ap.add_argument("--meta_file",  help="meta file for Yolo when using GPU mode")
+
+ap.add_argument('--gpu', nargs='?',default=False, const=True, type=utils.str2bool, help='enable GPU processing. Needs libdarknet.so compiled in GPU mode')
+
+ap.add_argument('--use_opencv_dnn_cuda', nargs='?',default=False, const=True, type=utils.str2bool, help='Uses OpenCV DNN mode instead of darknet (Needs OpenCV 4.2+)')
 ap.add_argument("--darknet_lib",  help="path+filename of libdarknet shared object")
+
 
 ap.add_argument("--from", help = "arbitrary time range like '24 hours ago' or formal dates")
 ap.add_argument("--to", help = "arbitrary time range like '2 hours ago' or formal dates")
@@ -190,7 +195,7 @@ ap.add_argument("--balanceintensity", nargs='?',const=True,default=False,type=ut
 
 
 ap.add_argument('--present', nargs='?',default=True, const=True, type=utils.str2bool, help='look for frames where image in --match is present')
-ap.add_argument('--gpu', nargs='?',default=True, const=True, type=utils.str2bool, help='enable GPU processing. Needs libdarknet.so compiled in GPU mode')
+
 
 g.args = vars(ap.parse_args())
 utils.process_config()
