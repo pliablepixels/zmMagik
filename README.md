@@ -103,12 +103,12 @@ Maybe you can suggest a smarter way to overlay the rectangle using some fancy op
 Congratulations, maybe no one stole your amazon package
   * Make sure image you are looking for is not rotated/resized/etc. needs to be original dimensions
 
-### GPU FAQ
+## GPU FAQ
 
 ### What is done in the GPU?
 Only the DNN object detection part (Yolo). magik uses various image functions like background extraction, merging, resizes etc. that are _not_ done in the GPU. As of today, the OpenCV python CUDA wrapper documentation is dismal and unlike what many people think, where its just a `.cuda` difference in API calls, the flow/parameters also differ. See [this](https://jamesbowley.co.uk/accelerating-opencv-with-cuda-streams-in-python/) for example. I may eventually  get to wrapping all the other non DNN parts into their CUDA equivalent functions, but right now, I'm disinclined to do it. I'll be happy to accept PRs.
 
-#### How do I get GPU working?
+### How do I get GPU working?
 As of Feb 2020, OpenCV 4.2 is released, which supports CUDA for DNN.
 You have two options:
 
@@ -140,9 +140,9 @@ height=416
 <and then all the stuff that follows>
 ```
 
-* How much speed boost can I expect with GPU?
+### How much speed boost can I expect with GPU?
 
-  * Here is a practical comparison. I ran a blend operation on my driveway camera (modect) for a full day's worth of alarmed events. I used 'mixed' mode, which first used openCV background subtraction and then YOLO if the first mode found anything. This was to be fair to the CPU stats when compared. It grabbed a total of 27 video events:
+Here is a practical comparison. I ran a blend operation on my driveway camera (modect) for a full day's worth of alarmed events. I used 'mixed' mode, which first used openCV background subtraction and then YOLO if the first mode found anything. This was to be fair to the CPU stats when compared. It grabbed a total of 27 video events:
   ```
   python3 ./magik.py --blend --from "1 day ago"  --monitors 8 -c ./config.ini --gpu=True --alarmonly=True --skipframes=1
 
