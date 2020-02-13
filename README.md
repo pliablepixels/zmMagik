@@ -125,11 +125,9 @@ Simply put:
 * Either compile OpenCV 4.2+ from source correctly or go the direct darknet route as described before
 * Make sure it is actually using GPU
 * then set `gpu=True` and either specify `use_opencv_dnn_cua` to `True` or set `darknet_lib=<path/to/filename of gpu accelerated so>`
-* 
 
-* How much GPU memory do I need?
-  * The YoloV3 model config I use takes up 1.6GB of GPU memory
-  * Note that I use a reduced footprint yolo config. I have 4GB of GPU memory, so the default `yolov3.cfg` did not work and ate up all my memory. This is my modified `yolov3.cfg` section to make it work:
+### How much GPU memory do I need?
+The YoloV3 model config I use takes up 1.6GB of GPU memory. Note that I use a reduced footprint yolo config. I have 4GB of GPU memory, so the default `yolov3.cfg` did not work and ate up all my memory. This is my modified `yolov3.cfg` section to make it work:
 
 ```
 [net]
