@@ -37,8 +37,7 @@ def annotate_init():
         import zmMagik_helpers.detect_yolo as Yolo
         det = Yolo.DetectYolo (configPath = g.args['config_file'],
                               weightPath = g.args['weights_file'],
-                              labelsPath =  g.args['labels_file'],
-                              darknetLib = g.args['darknet_lib'])
+                              labelsPath =  g.args['labels_file'])
     
 
     elif g.args['detection_type'] == 'mixed':
@@ -47,7 +46,6 @@ def annotate_init():
         det =  FgBg.DetectBackground(min_accuracy = g.args['threshold'], min_blend_area=g.args['minblendarea'])
         det2 = Yolo.DetectYolo (configPath = g.args['config_file'],
                               weightPath = g.args['weights_file'],
-                              darknetLib = g.args['darknet_lib'],
                               labelsPath =  g.args['labels_file'] )
  
 
