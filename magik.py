@@ -76,8 +76,15 @@ def process_timeline():
     #print (resp.json())
     events = resp.json()['events']
 
-    
-    
+    pages = resp.json()['pagination']['pageCount']
+    if pages > 1:
+        for page in range(2,pages+1):
+            nextPageUrl = url+'&page='+str(page)
+            print('Getting page {} of events using: {}'.format(page,nextPageUrl))
+            resp = requests.get(nextPageUrl)
+            #print (resp.json())
+            events += resp.json()['events']
+
     cnt = 0
     delay = 0
     for event in events:
