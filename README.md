@@ -1,3 +1,7 @@
+# NOT MAINTAINED 
+I've run out of time to maintain this software. It is also quite dated and doesn't use pyzm which has many powerful features that this utility will benefit from.
+
+
 ## What
 zmMagik will be a list of growing foo-magic things you can do with video images that ZM stores. _probably..._
 
