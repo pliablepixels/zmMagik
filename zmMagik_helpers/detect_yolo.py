@@ -21,42 +21,28 @@ class IMAGE(Structure):
 class DetectYolo:
 
     def __init__(self,configPath=None, weightPath=None, labelsPath=None, kernel_fill=3):
+        utils.success_print('Using OpenCV model for YOLO')
+        utils.success_print('If you run out of memory, please tweak yolo.cfg')
 
-        if g.args['gpu'] and not g.args['use_opencv_dnn_cuda']:
+        self.net = cv2.dnn.readNetFromDarknet(configPath, weightPath)
+        self.labels = open(labelsPath).read().strip().split("\n")
+        np.random.seed(42)
+        self.colors = np.random.randint(
+            0, 255, size=(len(self.labels), 3), dtype="uint8")
+        self.kernel_fill = np.ones((kernel_fill,kernel_fill),np.uint8)
 
-            utils.success_print('Using Darknet GPU model for YOLO')
-            utils.success_print('If you run out of memory, please tweak yolo.cfg')
+        if g.args['gpu']:
+            (maj,minor,patch) = cv2.__version__.split('.')
+            min_ver = int (maj+minor)
+            if min_ver < 42:
+                utils.fail_print('Not setting CUDA backend for OpenCV DNN')
+                utils.dim_print ('You are using OpenCV version {} which does not support CUDA for DNNs. A minimum of 4.2 is required. See https://www.pyimagesearch.com/2020/02/03/how-to-use-opencvs-dnn-module-with-nvidia-gpus-cuda-and-cudnn/ on how to compile and install openCV 4.2'.format(cv2.__version__))
+            else:
+                utils.success_print ('Setting CUDA backend for OpenCV. If you did not set your CUDA_ARCH_BIN correctly during OpenCV compilation, you will get errors during detection related to invalid device/make_policy')
+                self.net.setPreferableBackend(cv2.dnn.DNN_BACKEND_CUDA)
+                self.net.setPreferableTarget(cv2.dnn.DNN_TARGET_CUDA)
 
-            if not g.args['use_opencv_dnn_cuda']:
-                self.m = yolo.SimpleYolo(configPath=configPath,
-                        weightPath=weightPath,
-                        darknetLib=g.args['darknet_lib'],
-                        labelsPath=labelsPath,
-                        useGPU=True)
-
-        else:
-            utils.success_print('Using OpenCV model for YOLO')
-            utils.success_print('If you run out of memory, please tweak yolo.cfg')
-
-            self.net = cv2.dnn.readNetFromDarknet(configPath, weightPath)
-            self.labels = open(labelsPath).read().strip().split("\n")
-            np.random.seed(42)
-            self.colors = np.random.randint(
-                0, 255, size=(len(self.labels), 3), dtype="uint8")
-            self.kernel_fill = np.ones((kernel_fill,kernel_fill),np.uint8)
-
-            if g.args['use_opencv_dnn_cuda'] and g.args['gpu']:
-                (maj,minor,patch) = cv2.__version__.split('.')
-                min_ver = int (maj+minor)
-                if min_ver < 42:
-                    utils.fail_print('Not setting CUDA backend for OpenCV DNN')
-                    utils.dim_print ('You are using OpenCV version {} which does not support CUDA for DNNs. A minimum of 4.2 is required. See https://www.pyimagesearch.com/2020/02/03/how-to-use-opencvs-dnn-module-with-nvidia-gpus-cuda-and-cudnn/ on how to compile and install openCV 4.2'.format(cv2.__version__))
-                else:
-                    utils.success_print ('Setting CUDA backend for OpenCV. If you did not set your CUDA_ARCH_BIN correctly during OpenCV compilation, you will get errors during detection related to invalid device/make_policy')
-                    self.net.setPreferableBackend(cv2.dnn.DNN_BACKEND_CUDA)
-                    self.net.setPreferableTarget(cv2.dnn.DNN_TARGET_CUDA)
-
-        utils.success_print('YOLO initialized')
+    utils.success_print('YOLO initialized')
         
     def detect(self, frame, frame_b, frame_cnt, orig_fps, starttime, set_frames):
         relevant = False

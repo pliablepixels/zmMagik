@@ -30,7 +30,7 @@ import zmMagik_helpers.globals as g
 import zmMagik_helpers.blend as zmm_blend
 import zmMagik_helpers.annotate as zmm_annotate
 import zmMagik_helpers.search as zmm_search
-import zmMagik_helpers.log as log
+
 # adapted from https://stackoverflow.com/a/12117065
 def float_01(x):
     x = float(x)
@@ -46,7 +46,6 @@ def float_71(x):
 
 # colorama
 utils.init_colorama()
-
 has_zmlog = False
 try:
     import pyzm.ZMLog as zmlog  # only if you want to log to ZM
@@ -55,8 +54,7 @@ except ImportError as e:
     print('Could not import ZMLog, function will be disabled:' + str(e))
     zmlog = None
 if has_zmlog:
-    l_name = 'zmMagick_' + str(datetime.today().strftime('%Y-%m-%d'))
-    zmlog.init(name=l_name)
+    zmlog.init(name='zmMagick_')
 
 # all them arguments
 ap = configargparse.ArgParser()
@@ -85,11 +83,7 @@ ap.add_argument("--weights_file",  help="Weights file for ML based detection wit
 ap.add_argument("--labels_file",  help="labels file for ML based detection with full path")
 ap.add_argument("--meta_file",  help="meta file for Yolo when using GPU mode")
 
-ap.add_argument('--gpu', nargs='?',default=False, const=True, type=utils.str2bool, help='enable GPU processing. Needs libdarknet.so compiled in GPU mode')
-
-ap.add_argument('--use_opencv_dnn_cuda', nargs='?',default=False, const=True, type=utils.str2bool, help='Uses OpenCV DNN mode instead of darknet (Needs OpenCV 4.2+)')
-ap.add_argument("--darknet_lib",  help="path+filename of libdarknet shared object")
-
+ap.add_argument('--gpu', nargs='?',default=False, const=True, type=utils.str2bool, help='enable GPU processing. Requires OpenCV compiled with CUDA support')
 
 ap.add_argument("--from", help = "arbitrary time range like '24 hours ago' or formal dates")
 ap.add_argument("--to", help = "arbitrary time range like '2 hours ago' or formal dates")
@@ -157,7 +151,7 @@ try:
         'apiurl': g.args['apiportal'],
         'user': g.args['username'],
         'password': g.args['password'],
-        'logger': zmlog,  # use none if you don't want to log to ZM,
+        'logger': None,  # use none if you don't want to log to ZM,
     }
     import pyzm
     import pyzm.api as zmapi

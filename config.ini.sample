@@ -3,13 +3,32 @@
 # Simply do a -c <this config file> and add any other parameters you want in CLI
 # and they will be merged
 
+# First uses opencv background extraction to detect if an object is moving. If it is moving, then run yolo on it to make sure its something that is valid
+detection_type=mixed
+detectpattern =  (person|car|motorbike|bus|truck|boat)
+#detection_type=yolo_extraction
+#detection_type=background_extraction
+gpu=False
+# Change for your model type (yolov3 tiny yolo etc)
+config_file=/var/lib/zmeventnotification/models/yolov3/yolov4.cfg
+weights_file=/var/lib/zmeventnotification/models/yolov3/yolov4.weights
+labels_file=/var/lib/zmeventnotification/models/yolov3/coco.names
+confidence=0.5
+# How much to resize images. No need to feed in huge frames. 
+resize = 0.5
+# Used only for background_extraction mode. Keep this to 0.7
+threshold=0.7
+# size of text that is written on top of objects
+fontscale=0.8
 
+# These 4 must be filled
 username=admin
 password=password
 portal=https://server/zm
+portalapi=https://server/zm/api
 
 #If True, will first download videos and then locally process
-download=True
+download=False
 
 #If True, will show progress bars
 show_progress=False
@@ -22,10 +41,12 @@ objectonly=False
 # and how. Needs X
 display=False
 
-# Only extracts events that have at least one alarmed frame
-alarmonly=True
-# if alarmonly is true, will only get events with these many minimum alarmed frames
-minalarmframes=2
+# will only get events with these many minimum alarmed frames
+# Leave commented to not filter out '0' alarm frame (continuous) events
+#minalarmframes=2
+# Will skip events with at this many alarmed frames
+#maxalarmframes=
+
 
 # Writes frames only if the detection logic said it found something
 relevantonly=True
@@ -34,17 +55,6 @@ relevantonly=True
 # if you selected mixed or extract_background mode
 minblendarea=500
 
-# If you use GPU, you have two options:
-
-# Use OpenCV's new GPU DNN support (requires OpenCV 4.2+)
-# or, you need to have darknet compiled in GPU mode
-# and point darknet_lib to where that compiled SO is placed
-
-gpu=False
-
-#If true, will ignore darknet_lib
-use_opencv_dnn_cuda=True 
-darknet_lib=/home/pp/fiddle/zmMagik/libdarknet_gpu.so
 
 # If you want detections to lie inside a specified polygon
 # Note that only one mask is supported for now
@@ -61,32 +71,9 @@ fps=5
 # How many frames will be skipped during processing. Use to make things faster
 # 1 means no frames skipped
 skipframes=1
-# Used only for background_extraction mode. Keep this to 0.7
-threshold=0.7
-# Used by Yolo, if you use yolo or mixed mode. This is the minimum confidence level
-# of matched objects (keep it to 0.5 to 0.9)
-confidence=0.5
-# How much to resize images. No need to feed in huge frames. 
-resize = 0.5
 
 # If enabled, it tries to histogram match colors of of new event 
 # to blended events. I tried this while blending day and night events. It adjusts
 # to the higher intensity (day). Not sure it really works well.
 balanceintensity=False
 #balanceintensity=True
-
-# size of text that is written on top of objects
-fontscale=0.8
-
-# First uses opencv background extraction to detect if an object is moving. If it is moving, then run yolo on it to make sure its something that is valid
-detection_type=mixed
-detectpattern =  (person|car|motorbike|bus|truck|boat)
-
-#detection_type=yolo_extraction
-#detection_type=background_extraction
-
-# you need these if you use yolo or mixed for detection
-config_file=/var/lib/zmeventnotification/models/yolov3/yolov3.cfg
-weights_file=/var/lib/zmeventnotification/models/yolov3/yolov3.weights
-labels_file=/var/lib/zmeventnotification/models/yolov3/yolov3_classes.txt
-
