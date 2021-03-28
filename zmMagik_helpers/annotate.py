@@ -21,10 +21,7 @@ from imutils.video import FPS
 
 det = None
 det2 = None
-annotate_filename = 'annotated-'
-if len(g.mon_list) == 1:
-    annotate_filename = annotate_filename +'mon-'+ g.mon_list[0] + '-'
-annotate_filename = annotate_filename+datetime.now().strftime("%m_%d_%Y_%H_%M_%S")+'.mp4'
+
 
 def annotate_init():
     global det, det2
@@ -57,7 +54,8 @@ def annotate_init():
 def annotate_video(input_file=None,  eid = None, mid = None, starttime=None):
 
     global det, det2
-
+    annotate_filename = 'annotated-Event-' + str(eid) + '-' + datetime.now().strftime(
+    "%m_%d_%Y_%H_%M_%S") + '.mp4'
     set_frames = {
         'eventid': eid,
         'monitorid': mid,

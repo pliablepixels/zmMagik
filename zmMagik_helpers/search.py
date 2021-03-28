@@ -12,7 +12,7 @@ import zmMagik_helpers.log as log
 
 
 def search_video(input_file=None, out_file=None, eid = None, mid = None):
-    utils.dim_print ('Analyzing: {}'.format(input_file))
+    utils.dim_print ('Analyzing: {}'.format(utils.secure_string(input_file)))
     vid = cv2.VideoCapture(input_file)
     orig_fps = max(1, (g.args['fps'] or int(vid.get(cv2.CAP_PROP_FPS))))
     frame_found = False # if any match found, this will be true
@@ -147,6 +147,7 @@ def search_video(input_file=None, out_file=None, eid = None, mid = None):
     try:
         if remove_downloaded:
             os.remove(g.args['input']) # input was a remote file that was downloaded, so remove local download
+            remove_downloaded = None
     except:
         pass
 

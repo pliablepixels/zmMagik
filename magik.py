@@ -13,11 +13,8 @@ import time
 import os
 import sys
 from datetime import datetime, timedelta
-import urllib.request
-import urllib.parse as urlparse
 import json
 import dateparser
-import requests
 import pyzm
 import pyzm.api as zmapi
 
