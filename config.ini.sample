@@ -3,6 +3,9 @@
 # Simply do a -c <this config file> and add any other parameters you want in CLI
 # and they will be merged
 
+# I advise to first do 1 blend with 1 monitor, from="6 hours ago"
+# Just to see if things are working as expected.
+
 # First uses opencv background extraction to detect if an object is moving. If it is moving, then run yolo on it to make sure its something that is valid
 detection_type=mixed
 detectpattern =  (person|car|motorbike|bus|truck|boat)
