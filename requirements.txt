@@ -6,3 +6,4 @@ requests>=2.21.0
 tqdm>=4.32.1
 ConfigArgParse>=0.14.0
 colorama>=0.4.1
+pyzm
