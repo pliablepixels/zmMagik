@@ -150,8 +150,6 @@ try:
         'password': g.args['password'],
         'logger': None,  # use none if you don't want to log to ZM,
     }
-    import pyzm
-    import pyzm.api as zmapi
     import traceback
     import time
 
