@@ -1,3 +1,4 @@
+
 '''
     To search for objects:
         python ./magik.py  --find trash.jpg --username <user> --password <password> --portal https:/<portal>/zm --write --from "may 28 1pm" --to "may 28 5pm" --monitors 11,14 --no-present --skipframes=5
@@ -27,6 +28,34 @@ import zmMagik_helpers.globals as g
 import zmMagik_helpers.blend as zmm_blend
 import zmMagik_helpers.annotate as zmm_annotate
 import zmMagik_helpers.search as zmm_search
+import zmMagik_helpers.log as log
+
+def remove_input(input_file=None):
+    try:
+        os.remove(input_file) # cleanup
+    except:
+        pass
+
+def handoff(mo_id, ev_id, st_tm):
+    global delay, in_file
+    try:
+        if g.args['blend'] and not g.args['annotate'] and not g.args['find']:
+            res = zmm_blend.blend_video(input_file=in_file, out_file=g.out_file, eid=ev_id,
+                                        mid=mo_id, starttime=st_tm,
+                                        delay=delay)
+            delay = delay + g.args['blenddelay']
+        elif g.args['annotate'] and not g.args['blend'] and not g.args['find']:
+            res = zmm_annotate.annotate_video(input_file=in_file, eid=ev_id,
+                                              mid=mo_id,
+                                              starttime=st_tm)
+        elif g.args['find'] and not g.args['blend'] and not g.args['annotate']:
+            res = zmm_search.search_video(input_file=in_file, out_file=g.out_file, eid=ev_id,
+                                          mid=mo_id)
+        else:
+            raise ValueError('No support for mixing modes or you\'re trying an unknown mode')
+    except IOError as e:
+        utils.fail_print('ERROR: {}'.format(e))
+    remove_input(in_file)
 
 # adapted from https://stackoverflow.com/a/12117065
 def float_01(x):
@@ -41,17 +70,16 @@ def float_71(x):
         raise argparse.ArgumentTypeError('Float {} not in range of 0.7 to 1.0'.format(x))
     return x
 
+
 # colorama
 utils.init_colorama()
-has_zmlog = False
 try:
-    import pyzm.ZMLog as zmlog  # only if you want to log to ZM
-    has_zmlog = True
+    import pyzm.ZMLog as zmlog
+    zmlog.init(name='zmMagik')
 except ImportError as e:
     print('Could not import ZMLog, function will be disabled:' + str(e))
     zmlog = None
-if has_zmlog:
-    zmlog.init(name='zmMagick_')
+
 
 # all them arguments
 ap = configargparse.ArgParser()
@@ -80,7 +108,11 @@ ap.add_argument("--weights_file",  help="Weights file for ML based detection wit
 ap.add_argument("--labels_file",  help="labels file for ML based detection with full path")
 ap.add_argument("--meta_file",  help="meta file for Yolo when using GPU mode")
 
-ap.add_argument('--gpu', nargs='?',default=False, const=True, type=utils.str2bool, help='enable GPU processing. Requires OpenCV compiled with CUDA support')
+ap.add_argument('--gpu', nargs='?',default=False, const=True, type=utils.str2bool, help='enable GPU processing. Needs libdarknet.so compiled in GPU mode')
+
+ap.add_argument('--use_opencv_dnn_cuda', nargs='?',default=False, const=True, type=utils.str2bool, help='Uses OpenCV DNN mode instead of darknet (Needs OpenCV 4.2+)')
+ap.add_argument("--darknet_lib",  help="path+filename of libdarknet shared object")
+
 
 ap.add_argument("--from", help = "arbitrary time range like '24 hours ago' or formal dates")
 ap.add_argument("--to", help = "arbitrary time range like '2 hours ago' or formal dates")
@@ -113,7 +145,8 @@ ap.add_argument("--duration", help="how long (in seconds) to make the video", ty
 ap.add_argument("--balanceintensity", nargs='?',const=True,default=False,type=utils.str2bool ,help = "If enabled, will try and match frame intensities - the darker frame will be aligned to match the brighter one. May be useful for day to night transitions, or not :-p. Works with --blend")
 #
 ap.add_argument('--present', nargs='?',default=True, const=True, type=utils.str2bool, help='look for frames where image in --match is present')
-
+ap.add_argument('--sequential', nargs='?', default=True, const=True, type=utils.str2bool, help='Process events'
+                'per monitor (i.e. you specify 2 monitors, it does the events for 1 monitor first, then the next monitor')
 
 try:
     g.args = vars(ap.parse_args())
@@ -127,102 +160,89 @@ utils.dim_print('-----| Arguments to be used:')
 for k, v in g.args.items():
     utils.dim_print('{}={}'.format(k, v))
 print('\n')
+
 s_time = time.time()
-def remove_input(file):
-    global remove_downloaded
-    try:
-        if g.args['download']:
-            os.remove(file) # input was a remote file that was downloaded, so remove local download
-            remove_downloaded = None
-    except:
-        pass
-
-
-try:
-    os.remove('blended.mp4')
-except:
-    pass
 try:
     api_options = {
         'portalurl': g.args['portal'],
         'apiurl': g.args['apiportal'],
         'user': g.args['username'],
         'password': g.args['password'],
-        'logger': None,  # use none if you don't want to log to ZM,
+        'logger': zmlog,  # causes an error if host doesnt have /etc/zm/zm.conf, fix in pyzm?
     }
     import traceback
     import time
-
     zmapi = zmapi.ZMApi(options=api_options)
 except Exception as e:
     print('Error initing zmAPI: {}'.format(str(e)))
     print(traceback.format_exc())
     exit(1)
-# the way pyzm returns things idk how to combine 2 diff event filter objects and sort them to feed it into the blend
-# , annotate, search functions. So for now it will only do 1 monitor at a time.
-# Figure out how to take 2 filtered event objects to combine and sort them by start time, then feed it into the functions
+
+try:
+    event_filter = {}
+    if g.args['eventid']:
+        event_filter['event_id'] = g.args['eventid']
+    if g.args['from']:
+        event_filter['from'] = g.args['from']
+    if g.args['to']:
+        event_filter['to'] = g.args['to']
+    if g.args['minalarmframes']:
+        event_filter['min_alarmed_frames'] = g.args['minalarmframes']
+    if g.args['maxalarmframes']:
+        event_filter['max_alarmed_frames'] = g.args['maxalarmframes']
+    if g.args['objectonly']:
+        event_filter['object_only'] = g.args['objectonly']
+except Exception as e:
+    print('ERROR setting event_filter keys - {}'.format(e))
+    pass
 ms = zmapi.monitors()
-event_filter = {}
 mons = g.mon_list
+mon_events = {}
 for m in mons:
-    # construct event filter
-    try:
-        if g.args['eventid']:
-            event_filter['event_id'] = g.args['eventid']
-        if g.args['from']:
-            event_filter['from'] = g.args['from']
-        if g.args['to']:
-            event_filter['to'] = g.args['to']
-        if g.args['minalarmframes']:
-            event_filter['min_alarmed_frames'] = g.args['minalarmframes']
-        if g.args['maxalarmframes']:
-            event_filter['max_alarmed_frames'] = g.args['maxalarmframes']
-        if g.args['objectonly']:
-            event_filter['object_only'] = g.args['objectonly']
-    except Exception as e:
-        print('ERROR setting event_filter keys - {}'.format(e))
-        pass
     # create a filtered object of events for the current mID loop value
     cam_events = ms.find(id=m).events(options=event_filter)
     print('Found {} event(s) with filter: {}'.format(len(cam_events.list()), event_filter))
     cnt = 0
-    delay = 0
+    # loop through the events now and extract info
     for e in cam_events.list():
-        cnt = cnt + 1
-        in_file = e.get_video_url()
-        g.out_file = 'analyzed-mID_' + str(e.monitor_id()) + '-' + str(e.name()) + '.mp4'
-        if g.args['download']:
-            e.download_video()
-            in_file = str(e.id()) + '-video.mp4'
-            remove_downloaded = True
-        print('\n==============| Processing Event:{} for Monitor: {} ({} of {})|============='.format(
-            e.id(), e.monitor_id(), cnt, len(cam_events.list())))
-        # expand for jpegs??
-        if not e.video_file:
-            utils.fail_print("ERROR: only mp4 events supported (for now?), skipping.")
-            continue
-        #continue
-        try:
-            if g.args['blend']:
-                res = zmm_blend.blend_video(input_file=in_file, out_file=g.out_file, eid=e.id(),
-                                            mid=e.monitor_id(), starttime=e.start_time(),
-                                            delay=delay)
-                delay = delay + g.args['blenddelay']
-            elif g.args['annotate']:
-                res = zmm_annotate.annotate_video(input_file=in_file, eid=e.id(),
-                                                  mid=e.monitor_id(),
-                                                  starttime=e.start_time())
-            elif g.args['find']:
-                res = zmm_search.search_video(input_file=in_file, out_file=g.out_file, eid=e.id(),
-                                              mid=e.monitor_id())
-            else:
-                raise ValueError('No support for mixing modes or you\'re trying an unknown mode')
-            if not g.args['all'] and res:
-                break
-        except IOError as e:
-            utils.fail_print('ERROR: {}'.format(e))
-        remove_input(in_file)
+        cnt += 1
+        mon_events[e.id()] = [ e.id(), e.monitor_id(), e.start_time(), e.get_video_url()]
 
+delay = 0
+cnt = 0
+if not g.args['sequential']:
+    utils.fail_print('Mixing Events across Monitors, unexpected results may occur when blending')
+    # sort list by event # (should be in correct order, if not I will try start time converted to epoch then sorted)
+    sorted_mon = []
+    for s_e in sorted(mon_events, reverse=True):
+        sorted_mon.append(mon_events[s_e])
+    #print('sorted_mon LEN ({}) = {}'.format(len(sorted_mon), sorted_mon))
+    for s_event in sorted_mon:
+        cnt += 1
+        in_file = s_event[3]
+        if g.args['download']:
+            get_efs = ms.find(id=s_event[1]).events(options={'event_id': s_event[0]})
+            for c in get_efs.list():
+                c.download_video()
+            in_file = str(s_event[0]) + '-video.mp4'
+        print('\n==============| Processing Event:{} for Monitor: {} ({} of {})|============='.format(
+            s_event[0], s_event[1], cnt, len(sorted_mon)))
+        g.out_file = 'analyzed-mID_' + str(s_event[1]) + '-Event-' + str(s_event[0]) + '.mp4'
+        handoff(s_event[1], s_event[0], s_event[2])
+else:
+    utils.bold_print('Sequential mode active: processing events per monitor')
+    for ay in mon_events.keys():
+        cnt += 1
+        in_file = mon_events[ay][3]
+        if g.args['download']:
+            get_efs = ms.find(id=mon_events[ay][1]).events(options={'event_id': mon_events[ay][0]})
+            for c in get_efs.list():
+                c.download_video()
+            in_file = str(mon_events[ay][0]) + '-video.mp4'
+        print('\n==============| Processing Event:{} for Monitor: {} ({} of {})|============='.format(
+            mon_events[ay][0], mon_events[ay][1], cnt, len(mon_events)))
+        g.out_file = 'analyzed-mID_' + str(mon_events[ay][1]) + '-Event-' + str(mon_events[ay][0]) + '.mp4'
+        handoff(mon_events[ay][1], mon_events[ay][0], mon_events[ay][2])
 end_time = time.time()
 print('\nTotal time: {}s'.format(round(end_time - s_time, 2)))
 if g.args['dumpjson']:

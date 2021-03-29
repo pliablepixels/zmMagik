@@ -5,18 +5,12 @@
 import cv2
 import time
 from tqdm import tqdm
-import os
 import numpy as np
+from datetime import datetime
 
 import zmMagik_helpers.utils as utils
 import zmMagik_helpers.globals as g
-import zmMagik_helpers.log as log
-from datetime import datetime
-
-import imutils
-
 import zmMagik_helpers.FVS as FVS
-from imutils.video import FPS
 
 
 det = None
@@ -28,7 +22,7 @@ def annotate_init():
     #print (g.args['detection_type'])
     if g.args['detection_type'] == 'background_extraction':
         import zmMagik_helpers.detect_background as FgBg
-        det = FgBg.DetectBackground(min_accuracy = g.args['threshold'], min_blend_area=g.args['minblendarea'])
+        det = FgBg.DetectBackground(min_accuracy=g.args['threshold'], min_blend_area=g.args['minblendarea'])
 
     elif g.args['detection_type'] == 'yolo_extraction':
         import zmMagik_helpers.detect_yolo as Yolo
@@ -60,7 +54,7 @@ def annotate_video(input_file=None,  eid = None, mid = None, starttime=None):
         'eventid': eid,
         'monitorid': mid,
         'type': 'object',
-        'frames':[]
+        'frames': []
         }
 
     print ('annotating: {}'.format(utils.secure_string(input_file)))
@@ -98,10 +92,7 @@ def annotate_video(input_file=None,  eid = None, mid = None, starttime=None):
     else:
         fps_skip = max(1,int(cvobj.get(cv2.CAP_PROP_FPS)/2))
 
-
-    total_frames =  int(cvobj.get(cv2.CAP_PROP_FRAME_COUNT)) 
-   
-
+    total_frames = int(cvobj.get(cv2.CAP_PROP_FRAME_COUNT))
     start_time = time.time()
     utils.dim_print ('fps={}, skipping {} frames'.format(orig_fps, fps_skip))
     
@@ -110,6 +101,7 @@ def annotate_video(input_file=None,  eid = None, mid = None, starttime=None):
 
     frame_cnt = 0
     while True:
+        # read a frame and see if it was successful
         if vid.more():
             frame = vid.read()
             if frame is None:
@@ -131,7 +123,7 @@ def annotate_video(input_file=None,  eid = None, mid = None, starttime=None):
 
         if frame_cnt % fps_skip:
             continue
-      
+        # if frame grab success and there is a resize config, resize
         if succ and g.args['resize']:
             resize = g.args['resize']
             rh, rw, rl = frame.shape

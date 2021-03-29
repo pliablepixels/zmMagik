@@ -2,9 +2,19 @@
 # This file contains arguments you may want to reuse across multiple requests
 # Simply do a -c <this config file> and add any other parameters you want in CLI
 # and they will be merged
-
 # I advise to first do 1 blend with 1 monitor, from="6 hours ago"
 # Just to see if things are working as expected.
+
+# These 4 must be filled
+username=admin
+password=password
+portal=https://server/zm
+portalapi=https://server/zm/api
+# If you put more than 1 monitor (--monitors=3,6) this option controls how the events are processed.
+# if sequential=True (default), it will only process 1 monitors events and then move onto the next monitors events
+# if sequential=False, it will process events based on their event #, so you can blend 2 different monitors events
+# This is useful if you have a Day/Night setup where its 2 monitors for 1 camera for different zones/sensitivities.
+#sequential=False
 
 # First uses opencv background extraction to detect if an object is moving. If it is moving, then run yolo on it to make sure its something that is valid
 detection_type=mixed
@@ -12,10 +22,10 @@ detectpattern =  (person|car|motorbike|bus|truck|boat)
 #detection_type=yolo_extraction
 #detection_type=background_extraction
 gpu=False
-# Change for your model type (yolov3 tiny yolo etc)
-config_file=/var/lib/zmeventnotification/models/yolov3/yolov4.cfg
-weights_file=/var/lib/zmeventnotification/models/yolov3/yolov4.weights
-labels_file=/var/lib/zmeventnotification/models/yolov3/coco.names
+# Change for your model type (yolov3 tiny yolo etc), no TPU support yet
+config_file=/var/lib/zmeventnotification/models/yolov4/yolov4.cfg
+weights_file=/var/lib/zmeventnotification/models/yolov4/yolov4.weights
+labels_file=/var/lib/zmeventnotification/models/yolov4/coco.names
 confidence=0.5
 # How much to resize images. No need to feed in huge frames. 
 resize = 0.5
@@ -23,12 +33,6 @@ resize = 0.5
 threshold=0.7
 # size of text that is written on top of objects
 fontscale=0.8
-
-# These 4 must be filled
-username=admin
-password=password
-portal=https://server/zm
-portalapi=https://server/zm/api
 
 #If True, will first download videos and then locally process
 download=False

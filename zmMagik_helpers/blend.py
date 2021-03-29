@@ -4,21 +4,17 @@ import time
 from tqdm import tqdm
 import os
 import numpy as np
-
-import zmMagik_helpers.utils as utils
-import zmMagik_helpers.globals as g
-import zmMagik_helpers.log as log
 from datetime import datetime
 
 import zmMagik_helpers.FVS as FVS
-from imutils.video import FPS
+import zmMagik_helpers.utils as utils
+import zmMagik_helpers.globals as g
+
 
 det = None
 det2 = None
-blend_filename = 'blended-'
-if len(g.mon_list) == 1:
-    blend_filename = blend_filename +'mon-'+ g.mon_list[0] + '-'
-blend_filename = blend_filename+datetime.now().strftime("%m_%d_%Y_%H_%M_%S")+'.mp4'
+ran = datetime.now().strftime('%Y-%d-%m %H:%M:%S')
+
 
 def blend_init():
     global det, det2
@@ -50,8 +46,16 @@ def blend_init():
     utils.bold_print('Detection mode is: {}'.format(g.args['detection_type']))
 
 def blend_video(input_file=None, out_file=None, eid = None, mid = None, starttime=None, delay=0):
+    global det, det2, ran
+    blend_filename = 'blended-'
+    try:
+        if g.args['sequential'] == True:
+            blend_filename = blend_filename + 'mon-' + str(mid) + '-'
+    except:
+        pass
+    blend_filename = blend_filename + ran + '.mp4'
+    #print('blended filename = {}'.format(blend_filename))
 
-    global det, det2
     create_blend = False
     blend_frame_written_count = 0
 

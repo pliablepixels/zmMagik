@@ -1,11 +1,10 @@
 import zmMagik_helpers.utils as utils
 import zmMagik_helpers.globals as g
-import zmMagik_helpers.log as log
 import cv2
 import numpy as np
 from shapely.geometry import Polygon
 import dateparser 
-from datetime import datetime, timedelta
+from datetime import  timedelta
 
 class DetectBackground:
     # unspecified defaults come from config defaults

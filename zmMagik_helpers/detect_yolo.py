@@ -1,12 +1,10 @@
 import zmMagik_helpers.utils as utils
 import zmMagik_helpers.globals as g
-import zmMagik_helpers.log as log
 import cv2
 import numpy as np
 from shapely.geometry import Polygon
 import dateparser
-from datetime import datetime, timedelta
-import zmMagik_helpers.simpleyolo.simpleYolo as yolo
+from datetime import timedelta
 from ctypes import *
 import re
 
@@ -53,163 +51,90 @@ class DetectYolo:
         labels = []
         boxed_frame = frame.copy()
 
-        if not g.args['gpu'] or g.args['use_opencv_dnn_cuda']:
-            # we use OpenCV's optimized CPU or GPU code
-            ln = self.net.getLayerNames()
-            ln = [ln[i[0] - 1] for i in self.net.getUnconnectedOutLayers()]
-            blob = cv2.dnn.blobFromImage(
-                frame, 1 / 255.0, (416, 416), swapRB=True, crop=False)
-            self.net.setInput(blob)
-            layerOutputs = self.net.forward(ln)
-            for output in layerOutputs:
-                for detection in output:
-                    scores = detection[5:]
-                    classID = np.argmax(scores)
-                    confidence = scores[classID]
-                    label = self.labels[classID]
-                    if confidence > g.args['confidence']:
-                        r = re.compile(g.args['detectpattern'])
-                        if not re.match(r, label):
-                            #utils.dim_print('object "{}" does not match "{}"'.format(label, g.args['detectpattern']))
-                            continue
-                        box = detection[0:4] * np.array([W, H, W, H])
-                        (centerX, centerY, width, height) = box.astype("int")
-                        x = int(centerX - (width / 2))
-                        y = int(centerY - (height / 2))
-                        boxes.append([x, y, int(width), int(height)])
-                        confidences.append(float(confidence))
-                        labels.append(label)
-
-            idxs = cv2.dnn.NMSBoxes(boxes, confidences, g.args["confidence"], 0.3)
-            if len(idxs) > 0:
-                # loop over the indexes we are keeping
-                for i in idxs.flatten():
-                    # extract the bounding box coordinates
-                    (x, y) = (boxes[i][0], boxes[i][1])
-                    (width, height) = (boxes[i][2], boxes[i][3])
-                    label = labels[i]
-                    confidence = confidences[i]
-
-                    pts = Polygon([[x,y], [x+width,y], [x+width, y+height], [x,y+height]])
-                    if g.poly_mask is None or g.poly_mask.intersects(pts):
-                        relevant = True
-                        boxes.append([x, y, int(width), int(height)])
-                        confidences.append(float(confidence))
-                        labels.append(label)
-                        color = (255,0,0)
-                        cv2.rectangle(boxed_frame, (x, y), (x + width, y + height), color, 2)
-                        text = "{}: {:.2f}".format(label, confidence)
-                        cv2.putText(boxed_frame, text, (x, y - 5), cv2.FONT_HERSHEY_SIMPLEX,0.5, color, 2)
-
-                        if g.args['drawboxes']:
-                            cv2.rectangle(frame_b, (x, y), (x + width, y + height), (255,255,255), 1)
-
-                        obj_info = {
-                            'name': label,
-                            'time':int(frame_cnt/orig_fps),
-                            'frame': frame_cnt,
-                            'location': ((x,y),(x+width, y+height)),
-                            'confidence': '{:.4f}'.format(confidence)
-                        }
-
-                        # form text
-                        text = '{}: {}s, Frame: {}'.format(label, int(frame_cnt/orig_fps), frame_cnt)
-                        if starttime:
-                            st = dateparser.parse(starttime)
-                            #from_time = to_time - datetime.timedelta(hours = 1)
-                            # print (st)
-                            dt = st + timedelta(seconds=int(frame_cnt/orig_fps))
-                            text = label + ':' +dt.strftime('%b %d, %I:%M%p')
-                            obj_info['time'] = text
-                        set_frames['frames'].append (obj_info)
-
-                        # work on displaying text properly
-                        text = text.upper()
-
-                        delta = 0
-                        d_x = max (x-delta, 0)
-                        d_y = max (y-delta, 0)
-                        d_w = min (W, width+delta)
-                        d_h = min (H, height+delta)
-                        bsx, bsy, bex, bey = utils.write_text(frame=frame_b, text=text, x=d_x, y=d_y, W=W, H=H, adjust=True)
-                        # frame mask of text
-                        #cv2.rectangle(frame_mask, (bsx, bsy), (bex, bey), (255, 255, 255), cv2.FILLED)
-                        # frame mask of object
-                        cv2.rectangle(frame_mask, (d_x,d_y), (d_x+d_w, d_y+d_h), (255, 255, 255), cv2.FILLED)
-                    
-                       
-        else:  # darknet GPU code
-            # we use darknet directly 
-            # if you haven't conmpiled darknet in gpu mode, you are going
-            # to see terrible performance
-            im = self.m.array_to_image(frame)
-            
-            detections = self.m.detect_image(im)
-          
-            boxes = []
-            confidences = []
-            labels =[]
-            for detect in detections:
-                (label, confidence, bbox) = detect
+        ln = self.net.getLayerNames()
+        ln = [ln[i[0] - 1] for i in self.net.getUnconnectedOutLayers()]
+        blob = cv2.dnn.blobFromImage(
+            frame, 1 / 255.0, (416, 416), swapRB=True, crop=False)
+        self.net.setInput(blob)
+        layerOutputs = self.net.forward(ln)
+        for output in layerOutputs:
+            for detection in output:
+                scores = detection[5:]
+                classID = np.argmax(scores)
+                confidence = scores[classID]
+                label = self.labels[classID]
                 if confidence > g.args['confidence']:
                     r = re.compile(g.args['detectpattern'])
                     if not re.match(r, label):
-                       # utils.dim_print('object "{}" does not match "{}"'.format(label, g.args['detectpattern']))
+                        #utils.dim_print('object "{}" does not match "{}"'.format(label, g.args['detectpattern']))
                         continue
-                    box = bbox 
-                    (centerX, centerY, width, height) = box
+                    box = detection[0:4] * np.array([W, H, W, H])
+                    (centerX, centerY, width, height) = box.astype("int")
                     x = int(centerX - (width / 2))
                     y = int(centerY - (height / 2))
-                    width = int(width)
-                    height = int(height)
-                    pts = Polygon([[x,y], [x+width,y], [x+width, y+height], [x,y+height]])
-                    if g.poly_mask is None or g.poly_mask.intersects(pts):
-                        relevant = True
-                        boxes.append([x, y, width, height])
-                        confidences.append(float(confidence))
-                        labels.append(label) 
-                        color = (255,0,0)
-                        cv2.rectangle(boxed_frame, (x, y), (x + width, y + height), color, 2)
-                        text = "{}: {:.2f}".format(label, confidence)
-                        cv2.putText(boxed_frame, text, (x, y - 5), cv2.FONT_HERSHEY_SIMPLEX,0.5, color, 2)
+                    boxes.append([x, y, int(width), int(height)])
+                    confidences.append(float(confidence))
+                    labels.append(label)
 
-                        if g.args['drawboxes']:
-                            cv2.rectangle(frame_b, (x, y), (x + width, y + height), (255,255,255), 1)
+        idxs = cv2.dnn.NMSBoxes(boxes, confidences, g.args["confidence"], 0.3)
+        if len(idxs) > 0:
+            # loop over the indexes we are keeping
+            for i in idxs.flatten():
+                # extract the bounding box coordinates
+                (x, y) = (boxes[i][0], boxes[i][1])
+                (width, height) = (boxes[i][2], boxes[i][3])
+                label = labels[i]
+                confidence = confidences[i]
 
-                        obj_info = {
-                            'name': label,
-                            'time':int(frame_cnt/orig_fps),
-                            'frame': frame_cnt,
-                            'location': ((x,y),(x+width, y+height)),
-                            'confidence': '{:.4f}'.format(confidence)
-                        }
+                pts = Polygon([[x,y], [x+width,y], [x+width, y+height], [x,y+height]])
+                if g.poly_mask is None or g.poly_mask.intersects(pts):
+                    relevant = True
+                    boxes.append([x, y, int(width), int(height)])
+                    confidences.append(float(confidence))
+                    labels.append(label)
+                    color = (255,0,0)
+                    cv2.rectangle(boxed_frame, (x, y), (x + width, y + height), color, 2)
+                    text = "{}: {:.2f}".format(label, confidence)
+                    cv2.putText(boxed_frame, text, (x, y - 5), cv2.FONT_HERSHEY_SIMPLEX,0.5, color, 2)
 
-                        # form text
-                        text = '{}: {}s, Frame: {}'.format(label, int(frame_cnt/orig_fps), frame_cnt)
-                        if starttime:
-                            st = dateparser.parse(starttime)
-                            #from_time = to_time - datetime.timedelta(hours = 1)
-                            # print (st)
-                            dt = st + timedelta(seconds=int(frame_cnt/orig_fps))
-                            text = label + ':' +dt.strftime('%b %d, %I:%M%p')
-                            obj_info['time'] = text
-                        set_frames['frames'].append (obj_info)
+                    if g.args['drawboxes']:
+                        cv2.rectangle(frame_b, (x, y), (x + width, y + height), (255,255,255), 1)
 
-                        # work on displaying text properly
-                        text = text.upper()
-                        delta = 0
-                        d_x = max (x-delta, 0)
-                        d_y = max (y-delta, 0)
-                        d_w = min (W, width+delta)
-                        d_h = min (H, height+delta)
-                        bsx, bsy, bex, bey = utils.write_text(frame=frame_b, text=text, x=d_x, y=d_y, W=W, H=H, adjust=True)
-                        # frame mask of text
-                        #cv2.rectangle(frame_mask, (bsx, bsy), (bex, bey), (255, 255, 255), cv2.FILLED)
-                        # frame mask of object
-                        cv2.rectangle(frame_mask, (d_x,d_y), (d_x+d_w, d_y+d_h), (255, 255, 255), cv2.FILLED)
+                    obj_info = {
+                        'name': label,
+                        'time':int(frame_cnt/orig_fps),
+                        'frame': frame_cnt,
+                        'location': ((x,y),(x+width, y+height)),
+                        'confidence': '{:.4f}'.format(confidence)
+                    }
+
+                    # form text
+                    text = '{}: {}s, Frame: {}'.format(label, int(frame_cnt/orig_fps), frame_cnt)
+                    if starttime:
+                        st = dateparser.parse(starttime)
+                        #from_time = to_time - datetime.timedelta(hours = 1)
+                        # print (st)
+                        dt = st + timedelta(seconds=int(frame_cnt/orig_fps))
+                        text = label + ':' +dt.strftime('%b %d, %I:%M%p')
+                        obj_info['time'] = text
+                    set_frames['frames'].append (obj_info)
+
+                    # work on displaying text properly
+                    text = text.upper()
+
+                    delta = 0
+                    d_x = max (x-delta, 0)
+                    d_y = max (y-delta, 0)
+                    d_w = min (W, width+delta)
+                    d_h = min (H, height+delta)
+                    bsx, bsy, bex, bey = utils.write_text(frame=frame_b, text=text, x=d_x, y=d_y, W=W, H=H, adjust=True)
+                    # frame mask of text
+                    #cv2.rectangle(frame_mask, (bsx, bsy), (bex, bey), (255, 255, 255), cv2.FILLED)
+                    # frame mask of object
+                    cv2.rectangle(frame_mask, (d_x,d_y), (d_x+d_w, d_y+d_h), (255, 255, 255), cv2.FILLED)
+
                     
 
-        
         foreground_a = cv2.bitwise_and(frame,frame, mask=frame_mask)
         foreground_b = cv2.bitwise_and(frame_b,frame_b, mask=frame_mask)
         combined_fg= cv2.addWeighted(foreground_b, 0.5, foreground_a, 0.5,0)

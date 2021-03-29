@@ -2,13 +2,12 @@
 
 import cv2
 import time
-from datetime import datetime, timedelta
+from datetime import datetime
 from tqdm import tqdm
 import os
 
 import zmMagik_helpers.utils as utils
 import zmMagik_helpers.globals as g
-import zmMagik_helpers.log as log
 
 
 def search_video(input_file=None, out_file=None, eid = None, mid = None):
