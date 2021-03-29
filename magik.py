@@ -110,10 +110,6 @@ ap.add_argument("--meta_file",  help="meta file for Yolo when using GPU mode")
 
 ap.add_argument('--gpu', nargs='?',default=False, const=True, type=utils.str2bool, help='enable GPU processing. Needs libdarknet.so compiled in GPU mode')
 
-ap.add_argument('--use_opencv_dnn_cuda', nargs='?',default=False, const=True, type=utils.str2bool, help='Uses OpenCV DNN mode instead of darknet (Needs OpenCV 4.2+)')
-ap.add_argument("--darknet_lib",  help="path+filename of libdarknet shared object")
-
-
 ap.add_argument("--from", help = "arbitrary time range like '24 hours ago' or formal dates")
 ap.add_argument("--to", help = "arbitrary time range like '2 hours ago' or formal dates")
 ap.add_argument("--monitors", help = "comma separated list of monitor IDs to search")
